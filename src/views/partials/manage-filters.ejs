@@ -1,0 +1,35 @@
+<form id="filters" class="card filters" method="get" action="<%= action %>" novalidate>
+  <div class="field">
+    <label for="name">Nome</label>
+    <input type="text" id="name" name="name" value="<%= filters.name %>">
+  </div>
+  <div class="field">
+    <label for="sport">Modalidade</label>
+    <select id="sport" name="sport">
+      <option value="">Todas</option>
+      <% Object.entries(labels.SPORTS).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.sport === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Todos</option>
+      <% Object.entries(labels.CHAMPIONSHIP_DISPLAY_STATUS).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="date_from">Realização de</label>
+    <input type="text" id="date_from" name="date_from" placeholder="DD/MM/AAAA" value="<%= filters.date_from %>">
+    <%- include('error', { field: 'date_from' }) %>
+  </div>
+  <div class="field">
+    <label for="date_to">até</label>
+    <input type="text" id="date_to" name="date_to" placeholder="DD/MM/AAAA" value="<%= filters.date_to %>">
+    <%- include('error', { field: 'date_to' }) %>
+  </div>
+  <button type="submit" id="filter-submit">Filtrar</button>
+</form>

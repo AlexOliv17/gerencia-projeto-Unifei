@@ -79,4 +79,28 @@ function validateChampionshipInput(input, { cityIds = [] } = {}) {
   return { errors, data };
 }
 
-module.exports = { validateChampionshipInput, parseCategories };
+/**
+ * Reads list filters from the query string. `values` goes back to the form as typed; `criteria` holds
+ * only valid filters (a malformed date is reported and ignored instead of breaking the search).
+ */
+function parseSearchFilters(query, fields) {
+  const values = {};
+  const criteria = {};
+  const errors = {};
+  for (const field of fields) values[field] = trim(query[field]);
+  for (const [field, key] of [['date_from', 'dateFrom'], ['date_to', 'dateTo']]) {
+    if (!values[field]) continue;
+    const iso = parseBrDate(values[field]);
+    if (iso) criteria[key] = iso;
+    else errors[field] = MESSAGES.dateInvalid;
+  }
+  if (values.name) criteria.name = values.name;
+  if (values.sport in SPORTS) criteria.sport = values.sport;
+  if (values.status) criteria.status = values.status;
+  if (values.category) criteria.category = values.category;
+  if (values.city_id) criteria.cityId = Number(values.city_id);
+  if (values.open_only) criteria.openOnly = true;
+  return { values, criteria, errors };
+}
+
+module.exports = { validateChampionshipInput, parseCategories, parseSearchFilters };

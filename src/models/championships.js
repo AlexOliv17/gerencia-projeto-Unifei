@@ -58,6 +58,66 @@ function getChampionship(db, id, today = todayIso()) {
   return row ? decorate(db, row, today) : undefined;
 }
 
+const DISPLAY_STATUS_SQL = `CASE
+    WHEN championships.status = 'active' AND :today <= championships.registration_deadline THEN 'open'
+    WHEN championships.status = 'active' THEN 'in_progress'
+    ELSE championships.status END`;
+
+/** Shared WHERE pieces for the period filter: [start_date, end_date] overlaps [dateFrom, dateTo]; one bound alone means that single day. */
+function periodClause(where, params, { dateFrom, dateTo }) {
+  if (!dateFrom && !dateTo) return;
+  params.from = dateFrom || dateTo;
+  params.to = dateTo || dateFrom;
+  where.push('championships.start_date <= :to AND championships.end_date >= :from');
+}
+
+/** Organizer ("Meus campeonatos") and admin lists: Tabela 04 filters on the displayed status. */
+function searchChampionships(db, { organizerId, name, sport, status, dateFrom, dateTo } = {}, today = todayIso()) {
+  const where = ['1 = 1'];
+  const params = { today };
+  if (organizerId) { where.push('championships.organizer_id = :organizerId'); params.organizerId = organizerId; }
+  if (name) { where.push('championships.name LIKE :name'); params.name = `%${name.trim()}%`; }
+  if (sport) { where.push('championships.sport = :sport'); params.sport = sport; }
+  if (status) { where.push(`${DISPLAY_STATUS_SQL} = :status`); params.status = status; }
+  periodClause(where, params, { dateFrom, dateTo });
+  return db.prepare(`${SELECT} WHERE ${where.join(' AND ')}
+    ORDER BY championships.start_date, championships.name`).all(params).map((row) => decorate(db, row, today));
+}
+
+/** Returns whether dates or place changed, which is what inscribed people and followers must be told about. */
+function updateChampionship(db, id, data) {
+  return db.transaction(() => {
+    const before = db.prepare('SELECT * FROM championships WHERE id = ?').get(id);
+    db.prepare(`UPDATE championships SET name = ?, sport = ?, city_id = ?, venue = ?, start_date = ?, end_date = ?,
+      registration_deadline = ?, format = ?, max_slots = ?, rules = ?, contact = ?, updated_at = ? WHERE id = ?`).run(
+      data.name, data.sport, data.cityId, data.venue, data.startDate, data.endDate, data.registrationDeadline,
+      data.format, data.maxSlots, data.rules, data.contact, new Date().toISOString(), id,
+    );
+    db.prepare('DELETE FROM championship_categories WHERE championship_id = ?').run(id);
+    insertCategories(db, id, data.categories);
+    const changedSchedule = before.start_date !== data.startDate || before.end_date !== data.endDate
+      || before.registration_deadline !== data.registrationDeadline || before.venue !== data.venue
+      || before.city_id !== data.cityId;
+    return { changedSchedule };
+  })();
+}
+
+function finishChampionship(db, id) {
+  db.prepare("UPDATE championships SET status = 'finished', updated_at = ? WHERE id = ?").run(new Date().toISOString(), id);
+}
+
+function cancelChampionship(db, id, reason) {
+  db.prepare("UPDATE championships SET status = 'cancelled', cancel_reason = ?, updated_at = ? WHERE id = ?")
+    .run(reason, new Date().toISOString(), id);
+}
+
+/** Admin manages any championship; an organizer only their own. */
+function canManage(user, championship) {
+  if (!user) return false;
+  return user.role === 'admin' || (user.role === 'organizer' && championship.organizer_id === user.id);
+}
+
 module.exports = {
-  displayStatus, createChampionship, getChampionship, decorate, insertCategories, SELECT,
+  displayStatus, createChampionship, getChampionship, decorate, insertCategories, searchChampionships,
+  updateChampionship, finishChampionship, cancelChampionship, canManage, periodClause, SELECT, DISPLAY_STATUS_SQL,
 };

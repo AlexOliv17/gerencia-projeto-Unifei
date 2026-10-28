@@ -1,0 +1,5 @@
+<%- include('../partials/header') %>
+<h1>Todos os campeonatos</h1>
+<%- include('../partials/manage-filters', { action: '/admin/championships' }) %>
+<%- include('../partials/manage-table', { showOrganizer: true, allowEdit: false }) %>
+<%- include('../partials/footer') %>

@@ -8,6 +8,8 @@ const {
   createUser, findUserById, emailInUse, updateUser, anonymizeUser, searchUsers, isLastActiveAdmin,
 } = require('../models/users');
 const { validateUserInput } = require('../validation/users');
+const { searchChampionships } = require('../models/championships');
+const { parseSearchFilters } = require('../validation/championships');
 
 const router = express.Router();
 
@@ -15,6 +17,16 @@ router.use('/admin', requireRole('admin'));
 
 router.get('/admin/outbox', (req, res) => {
   res.render('admin/outbox', { title: 'Caixa de saída', messages: listOutbox(req.app.locals.db) });
+});
+
+router.get('/admin/championships', (req, res) => {
+  const { values, criteria, errors } = parseSearchFilters(req.query, ['name', 'sport', 'status', 'date_from', 'date_to']);
+  res.render('admin/championships', {
+    title: 'Todos os campeonatos',
+    filters: values,
+    errors,
+    championships: searchChampionships(req.app.locals.db, criteria),
+  });
 });
 
 router.get('/admin/users', (req, res) => {

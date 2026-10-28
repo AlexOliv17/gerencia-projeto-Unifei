@@ -3,4 +3,6 @@
   <h1>Meus campeonatos</h1>
   <a id="new-championship" class="button" href="/my/championships/new">Novo campeonato</a>
 </div>
+<%- include('../partials/manage-filters', { action: '/my/championships' }) %>
+<%- include('../partials/manage-table', { showOrganizer: false, allowEdit: true }) %>
 <%- include('../partials/footer') %>
