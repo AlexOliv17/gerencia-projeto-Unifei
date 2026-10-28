@@ -4,7 +4,7 @@ const session = require('express-session');
 const config = require('./config');
 const constants = require('./constants');
 const { formatBrDate } = require('./validation/dates');
-const { flash, render404 } = require('./middleware/session');
+const { flash, loadUser, render404 } = require('./middleware/session');
 
 function createApp({ db }) {
   const app = express();
@@ -24,10 +24,7 @@ function createApp({ db }) {
     cookie: { httpOnly: true, sameSite: 'lax' },
   }));
   app.use(flash);
-  app.use((req, res, next) => {
-    res.locals.currentUser = null;
-    next();
-  });
+  app.use(loadUser);
 
   app.get('/', (req, res) => res.redirect('/championships'));
   app.use(require('./routes/auth'));

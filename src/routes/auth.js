@@ -1,8 +1,8 @@
 const express = require('express');
 const { MESSAGES } = require('../constants');
 const { listCities } = require('../models/cities');
-const { createUser, emailInUse } = require('../models/users');
-const { validateUserInput } = require('../validation/users');
+const { createUser, emailInUse, authenticate } = require('../models/users');
+const { validateUserInput, normalizeEmail } = require('../validation/users');
 const { setFlash } = require('../middleware/session');
 
 const router = express.Router();
@@ -33,8 +33,36 @@ router.post('/register', (req, res) => {
   return res.redirect('/login');
 });
 
+const LOGIN_ERRORS = {
+  invalid: MESSAGES.loginInvalid,
+  locked: MESSAGES.loginLocked,
+  suspended: MESSAGES.loginSuspended,
+};
+
 router.get('/login', (req, res) => {
   res.render('auth/login', { title: 'Entrar', values: {} });
+});
+
+router.post('/login', (req, res, next) => {
+  const result = authenticate(req.app.locals.db, normalizeEmail(req.body.email), req.body.password);
+  if (result.error) {
+    res.locals.flash = { type: 'error', message: LOGIN_ERRORS[result.error] };
+    return res.status(401).render('auth/login', { title: 'Entrar', values: { email: req.body.email } });
+  }
+  // New session id on login prevents session fixation.
+  return req.session.regenerate((err) => {
+    if (err) return next(err);
+    req.session.userId = result.user.id;
+    return res.redirect('/championships');
+  });
+});
+
+router.post('/logout', (req, res, next) => {
+  req.session.regenerate((err) => {
+    if (err) return next(err);
+    setFlash(req, 'success', MESSAGES.loggedOut);
+    return res.redirect('/championships');
+  });
 });
 
 module.exports = router;
