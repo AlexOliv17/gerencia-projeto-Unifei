@@ -94,7 +94,29 @@ function anonymizeUser(db, id, now = new Date()) {
     .run(`removed-${id}@arenalocal.invalid`, now.toISOString(), now.toISOString(), id);
 }
 
+/** Admin search (Tabela 02): partial name/e-mail, exact role/status; deleted accounts never listed. */
+function searchUsers(db, { name, email, role, status } = {}) {
+  const where = ['users.deleted_at IS NULL'];
+  const params = [];
+  if (name) { where.push('users.name LIKE ?'); params.push(`%${name.trim()}%`); }
+  if (email) { where.push('users.email LIKE ?'); params.push(`%${email.trim().toLowerCase()}%`); }
+  if (role) { where.push('users.role = ?'); params.push(role); }
+  if (status) { where.push('users.status = ?'); params.push(status); }
+  return db.prepare(`SELECT users.*, cities.name AS city_name
+    FROM users JOIN cities ON cities.id = users.city_id
+    WHERE ${where.join(' AND ')} ORDER BY users.name COLLATE NOCASE`).all(...params);
+}
+
+function countActiveAdmins(db) {
+  return db.prepare("SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND status = 'active' AND deleted_at IS NULL")
+    .get().n;
+}
+
+function isLastActiveAdmin(db, user) {
+  return user.role === 'admin' && user.status === 'active' && countActiveAdmins(db) <= 1;
+}
+
 module.exports = {
   createUser, findUserByEmail, findUserById, emailInUse, authenticate, setPassword, updateUser, verifyPassword,
-  anonymizeUser, BCRYPT_COST,
+  anonymizeUser, searchUsers, countActiveAdmins, isLastActiveAdmin, BCRYPT_COST,
 };

@@ -60,6 +60,7 @@ const MESSAGES = {
   userSaved: 'Usuário atualizado com sucesso.',
   userDeleted: 'Usuário excluído com sucesso.',
   lastAdmin: 'Não é possível excluir o último administrador ativo.',
+  lastAdminDemote: 'Não é possível remover o perfil ou suspender o último administrador ativo.',
   forbidden: 'Acesso negado',
   dateInvalid: 'Data inválida. Use DD/MM/AAAA.',
   endBeforeStart: 'A data de término não pode ser anterior à data de início.',
