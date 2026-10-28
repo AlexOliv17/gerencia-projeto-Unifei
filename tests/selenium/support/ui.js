@@ -38,11 +38,26 @@ async function selectedText(driver, id) {
   return (await option.getText()).trim();
 }
 
-/** Clicks the button and waits for the next page to load. */
+/**
+ * Any error while touching the old element means its document is gone. until.stalenessOf only
+ * accepts StaleElementReferenceError, but mid-navigation Chrome may answer "Node with given id
+ * does not belong to the document" instead.
+ */
+async function isDetached(element) {
+  try {
+    await element.isEnabled();
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+/** Clicks the button and waits until the old page is gone and the next one finished loading. */
 async function click(driver, css) {
   const button = await find(driver, css);
   await button.click();
-  await driver.wait(until.stalenessOf(button), WAIT_MS);
+  await driver.wait(() => isDetached(button), WAIT_MS, `a página não mudou após clicar em ${css}`);
+  await driver.wait(async () => (await driver.executeScript('return document.readyState')) === 'complete', WAIT_MS);
 }
 
 async function submit(driver) {
