@@ -43,8 +43,14 @@ function formValues(c) {
   };
 }
 
-/** :id must exist (404), be manageable by the user (403) and still be active (403). */
+/**
+ * Organizers must be validated (active) to manage championships; :id must exist (404),
+ * be manageable by the user (403) and still be active (403).
+ */
 function loadManageable(req, res, next) {
+  if (req.user.role === 'organizer' && req.user.status !== 'active') {
+    return res.render('championships/pending', { title: 'Cadastro em validação' });
+  }
   const championship = getChampionship(req.app.locals.db, Number(req.params.id));
   if (!championship) return render404(res);
   if (!canManage(req.user, championship) || championship.status !== 'active') return render403(res);

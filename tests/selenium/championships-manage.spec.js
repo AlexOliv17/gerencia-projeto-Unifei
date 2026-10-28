@@ -6,7 +6,7 @@ const { addDaysIso, todayIso, formatBrDate } = require('../../src/validation/dat
 const { startTestServer } = require('./support/server');
 const { buildDriver, quitDriver } = require('./support/driver');
 const {
-  visit, fill, selectByText, submit, click, flash, fieldError, text, texts, exists, value, login, logout,
+  visit, fill, selectByText, submit, click, flash, fieldError, text, texts, exists, value, login, logout, forgePost,
 } = require('./support/ui');
 
 const inDays = (n) => addDaysIso(todayIso(), n);
@@ -150,6 +150,35 @@ describe('RFS06/RFS07/RFS08 - Gerenciar campeonatos', function () {
     assert.equal(await text(driver, 'h1'), MESSAGES.forbidden);
     await visit(driver, server.baseUrl, `/championships/${id}/cancel`);
     assert.equal(await text(driver, 'h1'), MESSAGES.forbidden);
+  });
+
+  it('outro organizador não altera nem cancela com POST forjado', async function () {
+    const id = idOf('Copa Itajubá de Futsal');
+    const before = server.db.prepare('SELECT name, status FROM championships WHERE id = ?').get(id);
+    await asOrganizer('/my/championships', 'outro@exemplo.com');
+    await forgePost(driver, `/my/championships/${id}/edit`, { name: 'Invadido', sport: 'futsal' });
+    assert.equal(await text(driver, 'h1'), MESSAGES.forbidden);
+    await forgePost(driver, `/championships/${id}/cancel`, { reason: 'invasão' });
+    assert.equal(await text(driver, 'h1'), MESSAGES.forbidden);
+    assert.deepEqual(server.db.prepare('SELECT name, status FROM championships WHERE id = ?').get(id), before);
+  });
+
+  it('organizador que volta a pendente não gerencia mais seus campeonatos (Mantis #3)', async function () {
+    const id = idOf('Copa Itajubá de Futsal');
+    const setStatus = (status) => server.db.prepare("UPDATE users SET status = ? WHERE email = 'organizador@arenalocal.com'")
+      .run(status);
+    setStatus('pending');
+    try {
+      await asOrganizer();
+      assert.equal(await exists(driver, `#edit-${id}`), false);
+      await visit(driver, server.baseUrl, `/my/championships/${id}/edit`);
+      assert.equal(await text(driver, '#pending-block'), MESSAGES.pendingBlock);
+      await forgePost(driver, `/championships/${id}/cancel`, { reason: 'tentativa' });
+      assert.equal(await text(driver, '#pending-block'), MESSAGES.pendingBlock);
+      assert.equal(server.db.prepare('SELECT status FROM championships WHERE id = ?').get(id).status, 'active');
+    } finally {
+      setStatus('active');
+    }
   });
 
   it('id inexistente responde página não encontrada', async function () {
