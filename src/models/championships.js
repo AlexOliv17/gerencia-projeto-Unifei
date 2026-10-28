@@ -84,6 +84,30 @@ function searchChampionships(db, { organizerId, name, sport, status, dateFrom, d
     ORDER BY championships.start_date, championships.name`).all(params).map((row) => decorate(db, row, today));
 }
 
+/**
+ * RFS12 public search (Tabela 07). Cancelled championships are never listed. Order: current and upcoming
+ * first by start date (nearest first), then past ones, most recent first.
+ */
+function searchPublicChampionships(db, {
+  cityId, sport, category, dateFrom, dateTo, openOnly,
+} = {}, today = todayIso()) {
+  const where = ["championships.status <> 'cancelled'"];
+  const params = { today };
+  if (cityId) { where.push('championships.city_id = :cityId'); params.cityId = cityId; }
+  if (sport) { where.push('championships.sport = :sport'); params.sport = sport; }
+  if (category) {
+    where.push(`EXISTS (SELECT 1 FROM championship_categories cc
+      WHERE cc.championship_id = championships.id AND cc.name LIKE :category)`);
+    params.category = `%${category.trim()}%`;
+  }
+  if (openOnly) where.push(`${DISPLAY_STATUS_SQL} = 'open'`);
+  periodClause(where, params, { dateFrom, dateTo });
+  return db.prepare(`${SELECT} WHERE ${where.join(' AND ')}
+    ORDER BY CASE WHEN championships.end_date >= :today THEN 0 ELSE 1 END,
+      CASE WHEN championships.end_date >= :today THEN championships.start_date END ASC,
+      championships.start_date DESC, championships.name`).all(params).map((row) => decorate(db, row, today));
+}
+
 /** Returns whether dates or place changed, which is what inscribed people and followers must be told about. */
 function updateChampionship(db, id, data) {
   return db.transaction(() => {
@@ -119,5 +143,6 @@ function canManage(user, championship) {
 
 module.exports = {
   displayStatus, createChampionship, getChampionship, decorate, insertCategories, searchChampionships,
+  searchPublicChampionships,
   updateChampionship, finishChampionship, cancelChampionship, canManage, periodClause, SELECT, DISPLAY_STATUS_SQL,
 };
