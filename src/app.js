@@ -30,6 +30,7 @@ function createApp({ db }) {
   });
 
   app.get('/', (req, res) => res.redirect('/championships'));
+  app.use(require('./routes/auth'));
   app.use(require('./routes/championships'));
 
   app.use((req, res) => render404(res));

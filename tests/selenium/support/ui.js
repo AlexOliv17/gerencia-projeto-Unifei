@@ -2,7 +2,9 @@ const { By, until } = require('selenium-webdriver');
 
 const WAIT_MS = 5000;
 
+/** Always starts from a blank page: driver.get to the URL already open (e.g. after a POST) may return before reloading. */
 async function visit(driver, baseUrl, path) {
+  await driver.get('about:blank');
   await driver.get(baseUrl + path);
 }
 
