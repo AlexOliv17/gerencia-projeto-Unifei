@@ -40,12 +40,66 @@ A partir da R01, cada release entrega também: cronograma atualizado com os dado
 - **`feat/release-N`**: branch de desenvolvimento de cada release (ex.: `feat/release-1`).
 - **Tags `v1.N-release-N`**: marcam a baseline de configuração de cada release entregue (ex.: `v1.1-release-1`).
 
+## Tecnologias
+
+- **Aplicação:** Node.js 22, Express, páginas EJS renderizadas no servidor, SQLite (better-sqlite3)
+- **Testes:** Selenium WebDriver + Mocha (Chrome), testes unitários com `node:test`
+- **Bugs:** MantisBT hospedado no [MantisHub](https://arenalocal.mantishub.io)
+
+## Como rodar
+
+Pré-requisitos: [Node.js 22+](https://nodejs.org) e Google Chrome.
+
+```bash
+npm install
+npm run seed     # cria data/arena-local.db com os dados de exemplo
+npm start        # http://localhost:3000
+```
+
+### Usuários de teste (criados pelo `npm run seed`)
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Administrador | admin@arenalocal.com | Admin@123 |
+| Organizador (validado) | organizador@arenalocal.com | Senha@123 |
+| Organizador (pendente) | pendente@arenalocal.com | Senha@123 |
+| Usuário | usuario@arenalocal.com | Senha@123 |
+
+Nesta versão os e-mails (recuperação de senha, avisos de alteração e cancelamento) são simulados: ficam na **Caixa de saída**, acessível ao administrador.
+
+## Testes
+
+```bash
+npm run test:unit        # regras de validação (datas, usuário, campeonato)
+npm test                 # testes Selenium no Chrome (headless)
+HEADLESS=false npm test  # mesmos testes com o navegador visível
+npm run test:report      # gera o relatório HTML em tests/evidence/report/
+```
+
+Cada arquivo de teste sobe a aplicação com um banco temporário e os dados de exemplo, então os testes não dependem do banco local. Falhas geram screenshot em `tests/evidence/screenshots/`.
+
+## Bugs
+
+Os bugs encontrados são registrados no [MantisHub do projeto](https://arenalocal.mantishub.io) (projeto *Arena Local*, uma versão por release) e resumidos em `tests/evidence/bugs-release-N.md`, com o teste de regressão e o commit da correção.
+
 ## Estrutura do repositório
 
 ```
 .
-├── documents/   # Artefatos de gerência e requisitos (plano de projeto, DRE, estimativa e cronograma)
-└── README.md
+├── documents/          # Artefatos de gerência e requisitos (plano de projeto, DRE, estimativa e cronograma)
+├── public/             # CSS
+├── src/
+│   ├── db/             # schema, conexão e dados de exemplo (seed)
+│   ├── middleware/     # sessão, mensagens e controle de acesso
+│   ├── models/         # acesso aos dados
+│   ├── routes/         # rotas por área (auth, perfil, admin, campeonatos)
+│   ├── validation/     # regras de negócio e validação
+│   └── views/          # páginas EJS
+├── tests/
+│   ├── unit/           # testes unitários (node:test)
+│   ├── selenium/       # testes Selenium (Mocha) e utilitários
+│   └── evidence/       # relatório de testes, screenshots e registro de bugs
+└── package.json
 ```
 
 ## Documentos
