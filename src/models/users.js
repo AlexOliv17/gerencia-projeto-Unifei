@@ -85,13 +85,19 @@ function verifyPassword(user, password) {
 
 /**
  * Account deletion (LGPD): personal data is wiped but the row stays so championships keep their
- * organizer reference. The original e-mail becomes free for a new sign-up.
+ * organizer reference. The original e-mail becomes free for a new sign-up, and the simulated
+ * password e-mails (which carry the name and address) are deleted with the reset tokens.
  */
 function anonymizeUser(db, id, now = new Date()) {
-  db.prepare(`UPDATE users SET name = 'Usuário removido', email = ?, password_hash = '', document = NULL,
-    league_name = NULL, status = 'suspended', failed_login_attempts = 0, locked_until = NULL,
-    deleted_at = ?, updated_at = ? WHERE id = ?`)
-    .run(`removed-${id}@arenalocal.invalid`, now.toISOString(), now.toISOString(), id);
+  db.transaction(() => {
+    const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id);
+    db.prepare("DELETE FROM outbox WHERE type = 'password_reset' AND recipient = ?").run(email);
+    db.prepare('DELETE FROM password_resets WHERE user_id = ?').run(id);
+    db.prepare(`UPDATE users SET name = 'Usuário removido', email = ?, password_hash = '', document = NULL,
+      league_name = NULL, status = 'suspended', failed_login_attempts = 0, locked_until = NULL,
+      deleted_at = ?, updated_at = ? WHERE id = ?`)
+      .run(`removed-${id}@arenalocal.invalid`, now.toISOString(), now.toISOString(), id);
+  })();
 }
 
 /** Admin search (Tabela 02): partial name/e-mail, exact role/status; deleted accounts never listed. */
