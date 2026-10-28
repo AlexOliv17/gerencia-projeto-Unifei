@@ -54,4 +54,12 @@ function authenticate(db, email, password, now = new Date()) {
   return { user };
 }
 
-module.exports = { createUser, findUserByEmail, findUserById, emailInUse, authenticate, BCRYPT_COST };
+/** Sets a new password and lifts any lockout. */
+function setPassword(db, id, password) {
+  db.prepare(`UPDATE users SET password_hash = ?, failed_login_attempts = 0, locked_until = NULL, updated_at = ?
+    WHERE id = ?`).run(bcrypt.hashSync(password, BCRYPT_COST), new Date().toISOString(), id);
+}
+
+module.exports = {
+  createUser, findUserByEmail, findUserById, emailInUse, authenticate, setPassword, BCRYPT_COST,
+};

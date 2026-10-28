@@ -79,4 +79,15 @@ function validateUserInput(input, { mode, role: currentRole, cityIds = [] }) {
   return { errors, data };
 }
 
-module.exports = { normalizeEmail, isValidEmail, normalizeDocument, validateUserInput, MIN_PASSWORD };
+/** Errors for a new password + confirmation pair, keyed by the given field names. */
+function validateNewPassword(password, confirm, fields = { password: 'password', confirm: 'password_confirm' }) {
+  const errors = {};
+  if (!password) errors[fields.password] = MESSAGES.required;
+  else if (password.length < MIN_PASSWORD) errors[fields.password] = MESSAGES.passwordShort;
+  else if (confirm !== password) errors[fields.confirm] = MESSAGES.passwordMismatch;
+  return errors;
+}
+
+module.exports = {
+  normalizeEmail, isValidEmail, normalizeDocument, validateUserInput, validateNewPassword, MIN_PASSWORD,
+};
