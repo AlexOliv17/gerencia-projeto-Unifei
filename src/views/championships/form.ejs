@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+<div class="card">
+  <form id="championship-form" class="stacked" method="post"
+        action="<%= mode === 'new' ? '/my/championships/new' : `/my/championships/${championship.id}/edit` %>" novalidate>
+    <div class="field">
+      <label for="name">Nome *</label>
+      <input type="text" id="name" name="name" value="<%= values.name || '' %>">
+      <%- include('../partials/error', { field: 'name' }) %>
+    </div>
+    <div class="field">
+      <label for="sport">Modalidade *</label>
+      <select id="sport" name="sport">
+        <option value="">Selecione</option>
+        <% Object.entries(labels.SPORTS).forEach(([key, label]) => { %>
+          <option value="<%= key %>" <%= values.sport === key ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'sport' }) %>
+    </div>
+    <div class="field">
+      <label for="categories">Categorias * <span class="hint">(separadas por vírgula, ex.: Adulto, Sub-17)</span></label>
+      <input type="text" id="categories" name="categories" value="<%= values.categories || '' %>">
+      <%- include('../partials/error', { field: 'categories' }) %>
+    </div>
+    <div class="field">
+      <label for="city_id">Cidade *</label>
+      <select id="city_id" name="city_id">
+        <option value="">Selecione</option>
+        <% cities.forEach((city) => { %>
+          <option value="<%= city.id %>" <%= String(values.city_id) === String(city.id) ? 'selected' : '' %>><%= city.name %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'city_id' }) %>
+    </div>
+    <div class="field">
+      <label for="venue">Local *</label>
+      <input type="text" id="venue" name="venue" value="<%= values.venue || '' %>">
+      <%- include('../partials/error', { field: 'venue' }) %>
+    </div>
+    <div class="field">
+      <label for="start_date">Data de início * <span class="hint">(DD/MM/AAAA)</span></label>
+      <input type="text" id="start_date" name="start_date" placeholder="DD/MM/AAAA" value="<%= values.start_date || '' %>">
+      <%- include('../partials/error', { field: 'start_date' }) %>
+    </div>
+    <div class="field">
+      <label for="end_date">Data de término * <span class="hint">(DD/MM/AAAA)</span></label>
+      <input type="text" id="end_date" name="end_date" placeholder="DD/MM/AAAA" value="<%= values.end_date || '' %>">
+      <%- include('../partials/error', { field: 'end_date' }) %>
+    </div>
+    <div class="field">
+      <label for="registration_deadline">Prazo de inscrição * <span class="hint">(DD/MM/AAAA)</span></label>
+      <input type="text" id="registration_deadline" name="registration_deadline" placeholder="DD/MM/AAAA" value="<%= values.registration_deadline || '' %>">
+      <%- include('../partials/error', { field: 'registration_deadline' }) %>
+    </div>
+    <div class="field">
+      <label for="format">Formato *</label>
+      <select id="format" name="format">
+        <option value="">Selecione</option>
+        <% Object.entries(labels.FORMATS).forEach(([key, label]) => { %>
+          <option value="<%= key %>" <%= values.format === key ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+      <p class="hint">Prova individual é exclusiva da Corrida de rua.</p>
+      <%- include('../partials/error', { field: 'format' }) %>
+    </div>
+    <div class="field">
+      <label for="max_slots">Número máximo de vagas</label>
+      <input type="text" id="max_slots" name="max_slots" inputmode="numeric" value="<%= values.max_slots || '' %>">
+      <%- include('../partials/error', { field: 'max_slots' }) %>
+    </div>
+    <div class="field">
+      <label for="rules">Regulamento</label>
+      <textarea id="rules" name="rules"><%= values.rules || '' %></textarea>
+    </div>
+    <div class="field">
+      <label for="contact">Contato <span class="hint">(telefone, e-mail ou rede social)</span></label>
+      <input type="text" id="contact" name="contact" value="<%= values.contact || '' %>">
+    </div>
+    <button type="submit" id="submit">Salvar</button>
+    <a class="button secondary" href="/my/championships">Cancelar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>
