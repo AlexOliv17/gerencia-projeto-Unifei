@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+<h1>Meu perfil</h1>
+<div class="card">
+  <p>Perfil: <span id="profile-role" class="badge"><%= labels.ROLES[currentUser.role] %></span>
+     Status: <span id="profile-status" class="badge"><%= labels.USER_STATUS[currentUser.status] %></span></p>
+
+  <form id="profile-form" class="stacked" method="post" action="/profile" novalidate>
+    <div class="field">
+      <label for="name">Nome completo *</label>
+      <input type="text" id="name" name="name" value="<%= values.name || '' %>">
+      <%- include('../partials/error', { field: 'name' }) %>
+    </div>
+    <div class="field">
+      <label for="email">E-mail *</label>
+      <input type="email" id="email" name="email" value="<%= values.email || '' %>">
+      <%- include('../partials/error', { field: 'email' }) %>
+    </div>
+    <div class="field">
+      <label for="city_id">Cidade *</label>
+      <select id="city_id" name="city_id">
+        <option value="">Selecione</option>
+        <% cities.forEach((city) => { %>
+          <option value="<%= city.id %>" <%= String(values.city_id) === String(city.id) ? 'selected' : '' %>><%= city.name %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'city_id' }) %>
+    </div>
+    <% if (currentUser.role === 'organizer') { %>
+      <div class="field">
+        <label for="document">CPF ou CNPJ *</label>
+        <input type="text" id="document" name="document" value="<%= values.document || '' %>">
+        <%- include('../partials/error', { field: 'document' }) %>
+      </div>
+      <div class="field">
+        <label for="league_name">Nome da liga *</label>
+        <input type="text" id="league_name" name="league_name" value="<%= values.league_name || '' %>">
+        <%- include('../partials/error', { field: 'league_name' }) %>
+      </div>
+    <% } %>
+
+    <fieldset class="field">
+      <legend>Trocar senha <span class="hint">(preencha só se quiser alterar)</span></legend>
+      <div class="field">
+        <label for="current_password">Senha atual</label>
+        <input type="password" id="current_password" name="current_password" autocomplete="current-password">
+        <%- include('../partials/error', { field: 'current_password' }) %>
+      </div>
+      <div class="field">
+        <label for="new_password">Nova senha</label>
+        <input type="password" id="new_password" name="new_password" autocomplete="new-password">
+        <%- include('../partials/error', { field: 'new_password' }) %>
+      </div>
+      <div class="field">
+        <label for="new_password_confirm">Confirme a nova senha</label>
+        <input type="password" id="new_password_confirm" name="new_password_confirm" autocomplete="new-password">
+        <%- include('../partials/error', { field: 'new_password_confirm' }) %>
+      </div>
+    </fieldset>
+    <button type="submit" id="submit">Salvar alterações</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Excluir minha conta</h2>
+  <p>Seus dados pessoais serão removidos. Esta ação não pode ser desfeita.</p>
+  <form id="delete-form" class="stacked" method="post" action="/profile/delete" novalidate>
+    <div class="field">
+      <label for="delete_password">Confirme com sua senha</label>
+      <input type="password" id="delete_password" name="delete_password" autocomplete="current-password">
+      <%- include('../partials/error', { field: 'delete_password' }) %>
+    </div>
+    <button type="submit" id="delete-account" class="danger">Excluir minha conta</button>
+  </form>
+</div>
+<%- include('../partials/footer') %>

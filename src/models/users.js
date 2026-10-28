@@ -60,6 +60,41 @@ function setPassword(db, id, password) {
     WHERE id = ?`).run(bcrypt.hashSync(password, BCRYPT_COST), new Date().toISOString(), id);
 }
 
+const UPDATABLE = {
+  name: 'name',
+  email: 'email',
+  cityId: 'city_id',
+  role: 'role',
+  status: 'status',
+  document: 'document',
+  leagueName: 'league_name',
+};
+
+/** Updates only the given fields (keys as returned by validateUserInput's data). */
+function updateUser(db, id, fields) {
+  const keys = Object.keys(fields).filter((k) => k in UPDATABLE);
+  if (!keys.length) return;
+  const sets = keys.map((k) => `${UPDATABLE[k]} = ?`).join(', ');
+  db.prepare(`UPDATE users SET ${sets}, updated_at = ? WHERE id = ?`)
+    .run(...keys.map((k) => fields[k]), new Date().toISOString(), id);
+}
+
+function verifyPassword(user, password) {
+  return Boolean(user.password_hash) && bcrypt.compareSync(String(password ?? ''), user.password_hash);
+}
+
+/**
+ * Account deletion (LGPD): personal data is wiped but the row stays so championships keep their
+ * organizer reference. The original e-mail becomes free for a new sign-up.
+ */
+function anonymizeUser(db, id, now = new Date()) {
+  db.prepare(`UPDATE users SET name = 'Usuário removido', email = ?, password_hash = '', document = NULL,
+    league_name = NULL, status = 'suspended', failed_login_attempts = 0, locked_until = NULL,
+    deleted_at = ?, updated_at = ? WHERE id = ?`)
+    .run(`removed-${id}@arenalocal.invalid`, now.toISOString(), now.toISOString(), id);
+}
+
 module.exports = {
-  createUser, findUserByEmail, findUserById, emailInUse, authenticate, setPassword, BCRYPT_COST,
+  createUser, findUserByEmail, findUserById, emailInUse, authenticate, setPassword, updateUser, verifyPassword,
+  anonymizeUser, BCRYPT_COST,
 };
