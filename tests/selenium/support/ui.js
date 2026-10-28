@@ -94,7 +94,27 @@ async function logout(driver) {
   await click(driver, '#nav-logout');
 }
 
+/** Submits a POST built inside the current page, the way a hand-crafted request would bypass the UI. */
+async function forgePost(driver, path, fields = {}) {
+  const body = await find(driver, 'body');
+  await driver.executeScript((action, data) => {
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = action;
+    for (const [name, v] of Object.entries(data)) {
+      const input = document.createElement('input');
+      input.name = name;
+      input.value = v;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+  }, path, fields);
+  await driver.wait(() => isDetached(body), WAIT_MS, `POST ${path} não navegou`);
+  await driver.wait(async () => (await driver.executeScript('return document.readyState')) === 'complete', WAIT_MS);
+}
+
 module.exports = {
   visit, find, fill, selectByText, selectedText, click, submit, text, texts, exists, value,
-  flash, fieldError, login, logout,
+  flash, fieldError, login, logout, forgePost,
 };

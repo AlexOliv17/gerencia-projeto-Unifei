@@ -4,7 +4,7 @@ const { requireLogin } = require('../middleware/auth');
 const { setFlash } = require('../middleware/session');
 const { listCities } = require('../models/cities');
 const {
-  emailInUse, updateUser, verifyPassword, setPassword, anonymizeUser,
+  emailInUse, updateUser, verifyPassword, setPassword, anonymizeUser, isLastActiveAdmin,
 } = require('../models/users');
 const { validateUserInput, validateNewPassword } = require('../validation/users');
 
@@ -57,11 +57,15 @@ router.post('/profile', (req, res) => {
 });
 
 router.post('/profile/delete', (req, res, next) => {
-  if (!verifyPassword(req.user, req.body.delete_password)) {
+  const { db } = req.app.locals;
+  let error = null;
+  if (!verifyPassword(req.user, req.body.delete_password)) error = MESSAGES.deletePasswordWrong;
+  else if (isLastActiveAdmin(db, req.user)) error = MESSAGES.lastAdmin;
+  if (error) {
     res.status(422);
-    return renderProfile(req, res, { errors: { delete_password: MESSAGES.deletePasswordWrong } });
+    return renderProfile(req, res, { errors: { delete_password: error } });
   }
-  anonymizeUser(req.app.locals.db, req.user.id);
+  anonymizeUser(db, req.user.id);
   return req.session.regenerate((err) => {
     if (err) return next(err);
     setFlash(req, 'success', MESSAGES.accountDeleted);

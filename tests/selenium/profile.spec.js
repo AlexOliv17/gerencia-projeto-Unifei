@@ -15,7 +15,8 @@ describe('RFS03/RFS04 - Meu perfil', function () {
     server = await startTestServer();
     driver = await buildDriver();
     const cityId = server.db.prepare("SELECT id FROM cities WHERE name = 'Itajubá'").get().id;
-    for (const [name, email] of [['Pedro Perfil', 'perfil@exemplo.com'], ['Sara Senha', 'senha@exemplo.com'], ['Edu Exclui', 'exclui@exemplo.com']]) {
+    for (const [name, email] of [['Pedro Perfil', 'perfil@exemplo.com'], ['Sara Senha', 'senha@exemplo.com'],
+      ['Edu Exclui', 'exclui@exemplo.com'], ['Lia Lgpd', 'lgpd@exemplo.com']]) {
       createUser(server.db, { name, email, password: 'Senha@123', cityId, role: 'user', status: 'active' });
     }
   });
@@ -91,6 +92,36 @@ describe('RFS03/RFS04 - Meu perfil', function () {
     await fill(driver, { delete_password: 'errada123' });
     await click(driver, '#delete-account');
     assert.equal(await fieldError(driver, 'delete_password'), MESSAGES.deletePasswordWrong);
+  });
+
+  it('último administrador ativo não exclui a própria conta (Mantis #2)', async function () {
+    await openProfile('admin@arenalocal.com', 'Admin@123');
+    await fill(driver, { delete_password: 'Admin@123' });
+    await click(driver, '#delete-account');
+    assert.equal(await fieldError(driver, 'delete_password'), MESSAGES.lastAdmin);
+    const admins = server.db.prepare(
+      "SELECT COUNT(*) AS n FROM users WHERE role = 'admin' AND status = 'active' AND deleted_at IS NULL",
+    ).get().n;
+    assert.equal(admins, 1);
+  });
+
+  it('exclusão remove os dados da pessoa da caixa de saída (Mantis #4)', async function () {
+    await visit(driver, server.baseUrl, '/password/forgot');
+    await fill(driver, { email: 'lgpd@exemplo.com' });
+    await submit(driver);
+    const sent = server.db.prepare("SELECT COUNT(*) AS n FROM outbox WHERE recipient = 'lgpd@exemplo.com'").get().n;
+    assert.equal(sent, 1, 'pré-condição: a mensagem de redefinição foi registrada');
+    await openProfile('lgpd@exemplo.com');
+    await fill(driver, { delete_password: 'Senha@123' });
+    await click(driver, '#delete-account');
+    assert.equal(await flash(driver), MESSAGES.accountDeleted);
+
+    await login(driver, server.baseUrl, 'admin@arenalocal.com', 'Admin@123');
+    await visit(driver, server.baseUrl, '/admin/outbox');
+    assert.equal(await text(driver, 'h1'), 'Caixa de saída');
+    const page = await driver.getPageSource();
+    assert.equal(page.includes('lgpd@exemplo.com'), false, 'e-mail da conta excluída ainda aparece');
+    assert.equal(page.includes('Lia Lgpd'), false, 'nome da conta excluída ainda aparece');
   });
 
   it('exclui a própria conta e libera o e-mail', async function () {
