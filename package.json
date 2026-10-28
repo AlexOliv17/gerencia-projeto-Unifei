@@ -1,0 +1,30 @@
+{
+  "name": "arena-local",
+  "version": "1.1.0",
+  "description": "Arena Local - plataforma de divulgação de campeonatos esportivos amadores (UNIFEI/SDES06)",
+  "private": true,
+  "type": "commonjs",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/db/seed.js",
+    "test": "mocha",
+    "test:report": "mocha --reporter mochawesome --reporter-option reportDir=tests/evidence/report,reportFilename=selenium-report,quiet=true",
+    "test:unit": "node --test \"tests/unit/**/*.test.js\""
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
+    "ejs": "^7.0.2",
+    "express": "^4.22.3",
+    "express-session": "^1.19.0"
+  },
+  "devDependencies": {
+    "mocha": "^11.8.0",
+    "mochawesome": "^8.1.1",
+    "selenium-webdriver": "^4.51.0"
+  }
+}
