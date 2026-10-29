@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<h1>Redefinir senha</h1>
+<div class="card">
+  <% if (valid) { %>
+    <form id="reset-form" class="stacked" method="post" novalidate>
+      <div class="field">
+        <label for="password">Nova senha <span class="hint">(mínimo 8 caracteres)</span></label>
+        <input type="password" id="password" name="password" autocomplete="new-password">
+        <%- include('../partials/error', { field: 'password' }) %>
+      </div>
+      <div class="field">
+        <label for="password_confirm">Confirme a nova senha</label>
+        <input type="password" id="password_confirm" name="password_confirm" autocomplete="new-password">
+        <%- include('../partials/error', { field: 'password_confirm' }) %>
+      </div>
+      <button type="submit" id="submit">Salvar nova senha</button>
+    </form>
+  <% } else { %>
+    <p><a href="/password/forgot">Solicitar um novo link</a></p>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<h1>Encerrar campeonato</h1>
+<div class="card">
+  <p>Confirma o encerramento de <strong><%= championship.name %></strong>?</p>
+  <p class="hint">Campeonatos encerrados continuam disponíveis para consulta histórica.</p>
+  <form method="post" action="/championships/<%= championship.id %>/finish">
+    <button type="submit" id="confirm-finish">Encerrar</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<h1>Campeonatos</h1>
+
+<form id="filters" class="card filters" method="get" action="/championships" novalidate>
+  <div class="field">
+    <label for="city_id">Cidade</label>
+    <select id="city_id" name="city_id">
+      <option value="">Todas</option>
+      <% cities.forEach((city) => { %>
+        <option value="<%= city.id %>" <%= filters.city_id === String(city.id) ? 'selected' : '' %>><%= city.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="sport">Modalidade</label>
+    <select id="sport" name="sport">
+      <option value="">Todas</option>
+      <% Object.entries(labels.SPORTS).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.sport === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="category">Categoria</label>
+    <input type="text" id="category" name="category" value="<%= filters.category %>">
+  </div>
+  <div class="field">
+    <label for="date_from">Data <span class="hint">(ou início do período)</span></label>
+    <input type="text" id="date_from" name="date_from" placeholder="DD/MM/AAAA" value="<%= filters.date_from %>">
+    <%- include('../partials/error', { field: 'date_from' }) %>
+  </div>
+  <div class="field">
+    <label for="date_to">Fim do período</label>
+    <input type="text" id="date_to" name="date_to" placeholder="DD/MM/AAAA" value="<%= filters.date_to %>">
+    <%- include('../partials/error', { field: 'date_to' }) %>
+  </div>
+  <div class="field checkbox">
+    <input type="checkbox" id="open_only" name="open_only" value="1" <%= filters.open_only ? 'checked' : '' %>>
+    <label for="open_only">Só inscrições abertas</label>
+  </div>
+  <button type="submit" id="filter-submit">Filtrar</button>
+</form>
+
+<% if (championships.length === 0) { %>
+  <p id="no-results">Nenhum campeonato encontrado.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Nome</th><th>Modalidade</th><th>Cidade</th><th>Período</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% championships.forEach((c) => { %>
+          <tr data-testid="championship-row">
+            <td class="name"><%= c.name %></td>
+            <td class="sport"><%= labels.SPORTS[c.sport] %></td>
+            <td class="city"><%= c.city_name %></td>
+            <td class="dates"><%= formatBrDate(c.start_date) %> a <%= formatBrDate(c.end_date) %></td>
+            <td class="status"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[c.displayStatus] %></td>
+            <td><a id="details-<%= c.id %>" class="details button small secondary" href="/championships/<%= c.id %>">Detalhes</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

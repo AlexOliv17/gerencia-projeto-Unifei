@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<h1>Caixa de saída</h1>
+<p class="hint">E-mails simulados: nesta versão as mensagens ficam registradas aqui em vez de serem enviadas.</p>
+<% if (messages.length === 0) { %>
+  <p id="outbox-empty">Nenhuma mensagem registrada.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Destinatário</th><th>Assunto</th><th>Mensagem</th></tr>
+      </thead>
+      <tbody>
+        <% messages.forEach((m) => { %>
+          <tr data-testid="outbox-row">
+            <td class="date"><%= new Date(m.created_at).toLocaleString('pt-BR') %></td>
+            <td class="recipient"><%= m.recipient %></td>
+            <td class="subject"><%= m.subject %></td>
+            <td class="body">
+              <%= m.body %>
+              <% if (m.link) { %><br><a class="outbox-link" href="<%= m.link %>"><%= m.link %></a><% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

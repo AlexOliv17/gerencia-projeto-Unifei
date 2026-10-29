@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<h1>Cancelar campeonato</h1>
+<div class="card">
+  <p>Cancelar <strong><%= championship.name %></strong>? Inscritos e seguidores serão avisados.</p>
+  <form class="stacked" method="post" action="/championships/<%= championship.id %>/cancel" novalidate>
+    <div class="field">
+      <label for="reason">Justificativa *</label>
+      <textarea id="reason" name="reason"></textarea>
+      <%- include('../partials/error', { field: 'reason' }) %>
+    </div>
+    <button type="submit" id="confirm-cancel" class="danger">Cancelar campeonato</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

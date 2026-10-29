@@ -1,0 +1,65 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Usuários</h1>
+  <a id="new-user" class="button" href="/admin/users/new">Novo usuário</a>
+</div>
+
+<form id="filters" class="card filters" method="get" action="/admin/users">
+  <div class="field">
+    <label for="name">Nome</label>
+    <input type="text" id="name" name="name" value="<%= filters.name %>">
+  </div>
+  <div class="field">
+    <label for="email">E-mail</label>
+    <input type="text" id="email" name="email" value="<%= filters.email %>">
+  </div>
+  <div class="field">
+    <label for="role">Tipo de perfil</label>
+    <select id="role" name="role">
+      <option value="">Todos</option>
+      <% Object.entries(labels.ROLES).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.role === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Todos</option>
+      <% Object.entries(labels.USER_STATUS).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button type="submit" id="filter-submit">Filtrar</button>
+</form>
+
+<% if (users.length === 0) { %>
+  <p id="no-users">Nenhum usuário encontrado.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Nome</th><th>E-mail</th><th>Cidade</th><th>Perfil</th><th>Status</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        <% users.forEach((u) => { %>
+          <tr data-testid="user-row" data-email="<%= u.email %>">
+            <td class="name"><%= u.name %></td>
+            <td class="email"><%= u.email %></td>
+            <td class="city"><%= u.city_name %></td>
+            <td class="role"><%= labels.ROLES[u.role] %></td>
+            <td class="status"><%= labels.USER_STATUS[u.status] %></td>
+            <td class="actions-cell">
+              <div class="actions">
+                <a id="edit-user-<%= u.id %>" class="button small secondary" href="/admin/users/<%= u.id %>/edit">Alterar</a>
+                <a id="delete-user-<%= u.id %>" class="button small danger" href="/admin/users/<%= u.id %>/delete">Excluir</a>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

@@ -1,0 +1,38 @@
+<% if (championships.length === 0) { %>
+  <p id="no-results">Nenhum campeonato encontrado.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <% if (showOrganizer) { %><th>Organizador</th><% } %>
+          <th>Modalidade</th><th>Cidade</th><th>Período</th><th>Status</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% championships.forEach((c) => { %>
+          <tr data-testid="championship-row">
+            <td class="name"><a href="/championships/<%= c.id %>"><%= c.name %></a></td>
+            <% if (showOrganizer) { %><td class="organizer"><%= c.organizerName %></td><% } %>
+            <td class="sport"><%= labels.SPORTS[c.sport] %></td>
+            <td class="city"><%= c.city_name %></td>
+            <td class="dates"><%= formatBrDate(c.start_date) %> a <%= formatBrDate(c.end_date) %></td>
+            <td class="status"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[c.displayStatus] %></td>
+            <td class="actions-cell">
+              <% if (c.status === 'active' && allowManage) { %>
+                <div class="actions">
+                  <% if (allowEdit) { %>
+                    <a id="edit-<%= c.id %>" class="button small secondary" href="/my/championships/<%= c.id %>/edit">Alterar</a>
+                  <% } %>
+                  <a id="finish-<%= c.id %>" class="button small secondary" href="/championships/<%= c.id %>/finish">Encerrar</a>
+                  <a id="cancel-<%= c.id %>" class="button small danger" href="/championships/<%= c.id %>/cancel">Cancelar</a>
+                </div>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>

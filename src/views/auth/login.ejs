@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<h1>Entrar</h1>
+<div class="card">
+  <form id="login-form" class="stacked" method="post" action="/login" novalidate>
+    <div class="field">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" name="email" value="<%= values.email || '' %>" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" autocomplete="current-password">
+    </div>
+    <button type="submit" id="submit">Entrar</button>
+  </form>
+  <p><a id="forgot-link" href="/password/forgot">Esqueci minha senha</a></p>
+  <p>Não tem conta? <a id="register-link" href="/register">Cadastre-se</a></p>
+</div>
+<%- include('../partials/footer') %>

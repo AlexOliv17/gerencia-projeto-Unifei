@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<h1>Excluir usuário</h1>
+<div class="card">
+  <p>Confirma a exclusão de <strong id="delete-target-name"><%= target.name %></strong> (<%= target.email %>)?</p>
+  <p class="hint">Os dados pessoais serão removidos. Campeonatos já publicados continuam visíveis.</p>
+  <form method="post" action="/admin/users/<%= target.id %>/delete">
+    <button type="submit" id="confirm-delete" class="danger">Excluir</button>
+    <a class="button secondary" href="/admin/users">Cancelar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

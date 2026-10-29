@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1 id="championship-name"><%= championship.name %></h1>
+  <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+</div>
+
+<% if (championship.status === 'cancelled') { %>
+  <p class="notice">Campeonato cancelado. Motivo: <span id="cancel-reason"><%= championship.cancel_reason %></span></p>
+<% } %>
+
+<div class="card">
+  <dl class="details">
+    <dt>Organizador</dt>
+    <dd id="championship-organizer"><%= championship.organizerName %></dd>
+    <dt>Modalidade</dt>
+    <dd id="championship-sport"><%= labels.SPORTS[championship.sport] %></dd>
+    <dt>Categorias</dt>
+    <dd id="championship-categories"><%= championship.categories.join(', ') %></dd>
+    <dt>Formato</dt>
+    <dd id="championship-format"><%= labels.FORMATS[championship.format] %></dd>
+    <dt>Local</dt>
+    <dd id="championship-venue"><%= championship.venue %> — <%= championship.city_name %></dd>
+    <dt>Período</dt>
+    <dd id="championship-dates"><%= formatBrDate(championship.start_date) %> a <%= formatBrDate(championship.end_date) %></dd>
+    <dt>Inscrições até</dt>
+    <dd id="championship-deadline"><%= formatBrDate(championship.registration_deadline) %></dd>
+    <% if (championship.max_slots) { %>
+      <dt>Vagas por categoria</dt>
+      <dd id="championship-slots"><%= championship.max_slots %></dd>
+    <% } %>
+    <% if (championship.contact) { %>
+      <dt>Contato</dt>
+      <dd id="championship-contact"><%= championship.contact %></dd>
+    <% } %>
+    <% if (championship.rules) { %>
+      <dt>Regulamento</dt>
+      <dd id="championship-rules"><%= championship.rules %></dd>
+    <% } %>
+  </dl>
+</div>
+<p><a href="/championships">Voltar para os campeonatos</a></p>
+<%- include('../partials/footer') %>

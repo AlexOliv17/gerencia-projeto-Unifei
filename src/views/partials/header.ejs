@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Arena Local</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/championships">Arena Local</a>
+    <nav class="nav">
+      <a id="nav-championships" href="/championships">Campeonatos</a>
+      <% if (currentUser) { %>
+        <% if (currentUser.role === 'organizer') { %>
+          <a id="nav-my-championships" href="/my/championships">Meus campeonatos</a>
+        <% } %>
+        <% if (currentUser.role === 'admin') { %>
+          <a id="nav-admin-users" href="/admin/users">Usuários</a>
+          <a id="nav-admin-championships" href="/admin/championships">Todos os campeonatos</a>
+          <a id="nav-admin-outbox" href="/admin/outbox">Caixa de saída</a>
+        <% } %>
+        <a id="nav-profile" href="/profile">Meu perfil</a>
+        <span id="current-user-name" class="user-name"><%= currentUser.name %></span>
+        <form method="post" action="/logout">
+          <button type="submit" id="nav-logout" class="link-button">Sair</button>
+        </form>
+      <% } else { %>
+        <a id="nav-login" href="/login">Entrar</a>
+        <a id="nav-register" href="/register">Cadastrar</a>
+      <% } %>
+    </nav>
+  </header>
+  <main class="container">
+    <% if (currentUser && currentUser.role === 'organizer' && currentUser.status === 'pending') { %>
+      <div id="pending-notice" class="notice">Sua conta de organizador aguarda validação de um administrador.</div>
+    <% } %>
+    <%- include('flash') %>

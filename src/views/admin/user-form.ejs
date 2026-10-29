@@ -1,0 +1,73 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+<div class="card">
+  <form id="user-form" class="stacked" method="post"
+        action="<%= mode === 'new' ? '/admin/users/new' : `/admin/users/${target.id}/edit` %>" novalidate>
+    <div class="field">
+      <label for="name">Nome completo *</label>
+      <input type="text" id="name" name="name" value="<%= values.name || '' %>">
+      <%- include('../partials/error', { field: 'name' }) %>
+    </div>
+    <div class="field">
+      <label for="email">E-mail *</label>
+      <input type="email" id="email" name="email" value="<%= values.email || '' %>">
+      <%- include('../partials/error', { field: 'email' }) %>
+    </div>
+    <% if (mode === 'new') { %>
+      <div class="field">
+        <label for="password">Senha * <span class="hint">(mínimo 8 caracteres)</span></label>
+        <input type="password" id="password" name="password" autocomplete="new-password">
+        <%- include('../partials/error', { field: 'password' }) %>
+      </div>
+      <div class="field">
+        <label for="password_confirm">Confirme a senha *</label>
+        <input type="password" id="password_confirm" name="password_confirm" autocomplete="new-password">
+        <%- include('../partials/error', { field: 'password_confirm' }) %>
+      </div>
+    <% } %>
+    <div class="field">
+      <label for="city_id">Cidade *</label>
+      <select id="city_id" name="city_id">
+        <option value="">Selecione</option>
+        <% cities.forEach((city) => { %>
+          <option value="<%= city.id %>" <%= String(values.city_id) === String(city.id) ? 'selected' : '' %>><%= city.name %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'city_id' }) %>
+    </div>
+    <div class="field">
+      <label for="role">Tipo de perfil *</label>
+      <select id="role" name="role">
+        <% Object.entries(labels.ROLES).forEach(([key, label]) => { %>
+          <option value="<%= key %>" <%= values.role === key ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'role' }) %>
+    </div>
+    <div class="field">
+      <label for="status">Status *</label>
+      <select id="status" name="status">
+        <% Object.entries(labels.USER_STATUS).forEach(([key, label]) => { %>
+          <option value="<%= key %>" <%= values.status === key ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'status' }) %>
+    </div>
+    <fieldset class="field">
+      <legend>Dados do organizador <span class="hint">(obrigatórios apenas para o perfil Organizador)</span></legend>
+      <div class="field">
+        <label for="document">CPF ou CNPJ</label>
+        <input type="text" id="document" name="document" value="<%= values.document || '' %>">
+        <%- include('../partials/error', { field: 'document' }) %>
+      </div>
+      <div class="field">
+        <label for="league_name">Nome da liga</label>
+        <input type="text" id="league_name" name="league_name" value="<%= values.league_name || '' %>">
+        <%- include('../partials/error', { field: 'league_name' }) %>
+      </div>
+    </fieldset>
+    <button type="submit" id="submit">Salvar</button>
+    <a class="button secondary" href="/admin/users">Cancelar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>
