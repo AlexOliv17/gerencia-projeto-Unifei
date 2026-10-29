@@ -76,6 +76,16 @@ HEADLESS=false npm test  # mesmos testes com o navegador visível
 npm run test:report      # gera o relatório HTML em tests/evidence/report/
 ```
 
+No PowerShell (Windows), para ver o navegador e rodar só um grupo de testes pelo nome:
+
+```powershell
+$env:HEADLESS = 'false'          # navegador visível neste terminal
+npx mocha --grep "RFS05"         # só os testes cujo nome contém "RFS05" (ou "Mantis", "RFS12"...)
+Remove-Item Env:HEADLESS         # volta ao modo sem janela
+```
+
+Use `npx mocha --grep` em vez de `npm test -- --grep`: no PowerShell o `--` é consumido pelo próprio shell e o filtro não chega ao Mocha.
+
 Cada arquivo de teste sobe a aplicação com um banco temporário e os dados de exemplo, então os testes não dependem do banco local. Falhas geram screenshot em `tests/evidence/screenshots/`.
 
 ## Bugs
