@@ -33,6 +33,38 @@ function decorate(db, row, today) {
   };
 }
 
+function categoriesWithIds(db, championshipId) {
+  return db.prepare('SELECT id, name FROM championship_categories WHERE championship_id = ? ORDER BY id').all(championshipId);
+}
+
+/**
+ * Categories are matched by name (case-insensitive) so the ones kept keep their id, and the registrations
+ * pointing at them; only categories that disappeared from the list are deleted.
+ */
+function syncCategories(db, championshipId, categories) {
+  const existing = new Map(categoriesWithIds(db, championshipId).map((c) => [c.name.toLowerCase(), c]));
+  const rename = db.prepare('UPDATE championship_categories SET name = ? WHERE id = ?');
+  const insert = db.prepare('INSERT INTO championship_categories (championship_id, name) VALUES (?, ?)');
+  for (const name of categories) {
+    const kept = existing.get(name.toLowerCase());
+    if (kept) {
+      if (kept.name !== name) rename.run(name, kept.id);
+      existing.delete(name.toLowerCase());
+    } else {
+      insert.run(championshipId, name);
+    }
+  }
+  const remove = db.prepare('DELETE FROM championship_categories WHERE id = ?');
+  for (const removed of existing.values()) remove.run(removed.id);
+}
+
+/** Names of the categories that already have registrations (of any status) and so cannot be removed. */
+function categoriesInUse(db, championshipId) {
+  return db.prepare(`SELECT DISTINCT cc.name FROM championship_categories cc
+    JOIN registrations r ON r.category_id = cc.id WHERE cc.championship_id = ? ORDER BY cc.id`)
+    .all(championshipId).map((c) => c.name);
+}
+
 function insertCategories(db, championshipId, categories) {
   const insert = db.prepare('INSERT INTO championship_categories (championship_id, name) VALUES (?, ?)');
   for (const name of categories) insert.run(championshipId, name);
@@ -43,10 +75,10 @@ function createChampionship(db, organizerId, data) {
   return db.transaction(() => {
     const id = Number(db.prepare(`INSERT INTO championships
       (organizer_id, name, sport, city_id, venue, start_date, end_date, registration_deadline, format,
-       max_slots, rules, contact, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`).run(
+       max_slots, rules, contact, allow_waitlist, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`).run(
       organizerId, data.name, data.sport, data.cityId, data.venue, data.startDate, data.endDate,
-      data.registrationDeadline, data.format, data.maxSlots, data.rules, data.contact, now, now,
+      data.registrationDeadline, data.format, data.maxSlots, data.rules, data.contact, data.allowWaitlist ? 1 : 0, now, now,
     ).lastInsertRowid);
     insertCategories(db, id, data.categories);
     return id;
@@ -113,12 +145,12 @@ function updateChampionship(db, id, data) {
   return db.transaction(() => {
     const before = db.prepare('SELECT * FROM championships WHERE id = ?').get(id);
     db.prepare(`UPDATE championships SET name = ?, sport = ?, city_id = ?, venue = ?, start_date = ?, end_date = ?,
-      registration_deadline = ?, format = ?, max_slots = ?, rules = ?, contact = ?, updated_at = ? WHERE id = ?`).run(
+      registration_deadline = ?, format = ?, max_slots = ?, rules = ?, contact = ?, allow_waitlist = ?, updated_at = ?
+      WHERE id = ?`).run(
       data.name, data.sport, data.cityId, data.venue, data.startDate, data.endDate, data.registrationDeadline,
-      data.format, data.maxSlots, data.rules, data.contact, new Date().toISOString(), id,
+      data.format, data.maxSlots, data.rules, data.contact, data.allowWaitlist ? 1 : 0, new Date().toISOString(), id,
     );
-    db.prepare('DELETE FROM championship_categories WHERE championship_id = ?').run(id);
-    insertCategories(db, id, data.categories);
+    syncCategories(db, id, data.categories);
     const changedSchedule = before.start_date !== data.startDate || before.end_date !== data.endDate
       || before.registration_deadline !== data.registrationDeadline || before.venue !== data.venue
       || before.city_id !== data.cityId;
@@ -142,7 +174,8 @@ function canManage(user, championship) {
 }
 
 module.exports = {
-  displayStatus, createChampionship, getChampionship, decorate, insertCategories, searchChampionships,
+  displayStatus, createChampionship, getChampionship, decorate, insertCategories, categoriesWithIds, categoriesInUse,
+  searchChampionships,
   searchPublicChampionships,
   updateChampionship, finishChampionship, cancelChampionship, canManage, periodClause, SELECT, DISPLAY_STATUS_SQL,
 };

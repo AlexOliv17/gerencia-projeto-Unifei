@@ -1,11 +1,18 @@
 const { By, until } = require('selenium-webdriver');
 
 const WAIT_MS = 5000;
+/** SLOW_MO=<ms> pauses after each step so a run with the browser visible (HEADLESS=false) can be followed. */
+const SLOW_MO_MS = Number(process.env.SLOW_MO) || 0;
+
+async function pause(driver) {
+  if (SLOW_MO_MS > 0) await driver.sleep(SLOW_MO_MS);
+}
 
 /** Always starts from a blank page: driver.get to the URL already open (e.g. after a POST) may return before reloading. */
 async function visit(driver, baseUrl, path) {
   await driver.get('about:blank');
   await driver.get(baseUrl + path);
+  await pause(driver);
 }
 
 async function find(driver, css) {
@@ -18,6 +25,7 @@ async function fill(driver, values) {
     const input = await find(driver, `#${id}`);
     await input.clear();
     await input.sendKeys(String(value));
+    await pause(driver);
   }
 }
 
@@ -27,6 +35,7 @@ async function selectByText(driver, id, text) {
   for (const option of options) {
     if ((await option.getText()).trim() === text) {
       await option.click();
+      await pause(driver);
       return;
     }
   }
@@ -58,6 +67,7 @@ async function click(driver, css) {
   await button.click();
   await driver.wait(() => isDetached(button), WAIT_MS, `a página não mudou após clicar em ${css}`);
   await driver.wait(async () => (await driver.executeScript('return document.readyState')) === 'complete', WAIT_MS);
+  await pause(driver);
 }
 
 async function submit(driver) {
@@ -112,6 +122,7 @@ async function forgePost(driver, path, fields = {}) {
   }, path, fields);
   await driver.wait(() => isDetached(body), WAIT_MS, `POST ${path} não navegou`);
   await driver.wait(async () => (await driver.executeScript('return document.readyState')) === 'complete', WAIT_MS);
+  await pause(driver);
 }
 
 module.exports = {

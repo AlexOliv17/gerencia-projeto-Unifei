@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Minhas equipes</h1>
+  <a id="new-team" class="button" href="/my/teams/new">Nova equipe</a>
+</div>
+<% if (teams.length === 0) { %>
+  <p id="no-teams">Você ainda não cadastrou nenhuma equipe.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Nome</th><th>Modalidade</th><th>Cidade</th><th>Atletas</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        <% teams.forEach((t) => { %>
+          <tr id="team-<%= t.id %>" data-testid="team-row">
+            <td class="name"><%= t.name %></td>
+            <td class="sport"><%= labels.SPORTS[t.sport] %></td>
+            <td class="city"><%= t.city_name %></td>
+            <td class="athletes"><%= t.athlete_count %></td>
+            <td class="actions-cell">
+              <div class="actions">
+                <a id="view-team-<%= t.id %>" class="button small secondary" href="/teams/<%= t.id %>">Ver</a>
+                <a id="edit-team-<%= t.id %>" class="button small secondary" href="/my/teams/<%= t.id %>/edit">Alterar</a>
+                <a id="delete-team-<%= t.id %>" class="button small danger" href="/my/teams/<%= t.id %>/delete">Excluir</a>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

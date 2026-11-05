@@ -15,6 +15,10 @@
         <% if (currentUser.role === 'organizer') { %>
           <a id="nav-my-championships" href="/my/championships">Meus campeonatos</a>
         <% } %>
+        <% if (currentUser.role === 'user' || currentUser.role === 'organizer') { %>
+          <a id="nav-my-teams" href="/my/teams">Minhas equipes</a>
+          <a id="nav-my-registrations" href="/my/registrations">Minhas inscrições</a>
+        <% } %>
         <% if (currentUser.role === 'admin') { %>
           <a id="nav-admin-users" href="/admin/users">Usuários</a>
           <a id="nav-admin-championships" href="/admin/championships">Todos os campeonatos</a>

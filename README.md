@@ -28,8 +28,8 @@ Principais funcionalidades previstas:
 |---|---|---|---|
 | R00 | Documentação: DRE, estimativa de tamanho (PCU), cronograma, matriz de rastreabilidade e plano de projeto | 20/10/2026 | `v1.0-release-0` |
 | R01 | 2 CRUDs: [RFC01] Manter Usuário e [RFC02] Manter Campeonato | 29/10/2026 | `v1.1-release-1` |
-| R02 | 4 CRUDs acumulados | — | `v1.2-release-2` |
-| R03 | 6 CRUDs acumulados + 1 relatório | — | `v1.3-release-3` |
+| R02 | 4 CRUDs acumulados: + [RFC07] Manter Equipe e [RFC08] Realizar Inscrição | 05/11/2026 | `v1.2-release-2` |
+| R03 | 6 CRUDs acumulados: + [RFC03] Manter Tabela de Jogos e [RFC04] Registrar Resultados; + relatório [RFC13] | — | `v1.3-release-3` |
 | R04 | 8 CRUDs acumulados + 1 relatório | — | `v1.4-release-4` |
 
 A partir da R01, cada release entrega também: cronograma atualizado com os dados de execução, baseline de configuração salva no Git, testes automatizados com Selenium e registro dos bugs encontrados no Mantis/Bugzilla.
@@ -56,6 +56,8 @@ npm run seed     # cria data/arena-local.db com os dados de exemplo
 npm start        # http://localhost:3000
 ```
 
+Ao atualizar o código para uma nova release, rode `npm run seed` de novo: o banco local é recriado com as tabelas novas (e os dados de exemplo).
+
 ### Usuários de teste (criados pelo `npm run seed`)
 
 | Perfil | E-mail | Senha |
@@ -63,14 +65,17 @@ npm start        # http://localhost:3000
 | Administrador | admin@arenalocal.com | Admin@123 |
 | Organizador (validado) | organizador@arenalocal.com | Senha@123 |
 | Organizador (pendente) | pendente@arenalocal.com | Senha@123 |
-| Usuário | usuario@arenalocal.com | Senha@123 |
+| Usuário (equipe Unidos de Itajubá) | usuario@arenalocal.com | Senha@123 |
+| Usuário (equipes Leoas da Serra e Vôlei Sapucaí) | capita@arenalocal.com | Senha@123 |
 
-Nesta versão os e-mails (recuperação de senha, avisos de alteração e cancelamento) são simulados: ficam na **Caixa de saída**, acessível ao administrador.
+O seed também traz inscrições de exemplo: pendente, aprovada e recusada.
+
+Nesta versão os e-mails (recuperação de senha, avisos de alteração, cancelamento e resultado de inscrição) são simulados: ficam na **Caixa de saída**, acessível ao administrador.
 
 ## Testes
 
 ```bash
-npm run test:unit        # regras de validação (datas, usuário, campeonato)
+npm run test:unit        # regras de validação (datas, usuário, campeonato, equipe, inscrição)
 npm test                 # testes Selenium no Chrome (headless)
 HEADLESS=false npm test  # mesmos testes com o navegador visível
 npm run test:report      # gera o relatório HTML em tests/evidence/report/
@@ -80,8 +85,9 @@ No PowerShell (Windows), para ver o navegador e rodar só um grupo de testes pel
 
 ```powershell
 $env:HEADLESS = 'false'          # navegador visível neste terminal
-npx mocha --grep "RFS05"         # só os testes cujo nome contém "RFS05" (ou "Mantis", "RFS12"...)
-Remove-Item Env:HEADLESS         # volta ao modo sem janela
+$env:SLOW_MO = '800'             # opcional: pausa de 800 ms após cada passo, para acompanhar na apresentação
+npx mocha --grep "RFS05"         # só os testes cujo nome contém "RFS05" (ou "Mantis", "RFS14"...)
+Remove-Item Env:HEADLESS, Env:SLOW_MO   # volta ao normal
 ```
 
 Use `npx mocha --grep` em vez de `npm test -- --grep`: no PowerShell o `--` é consumido pelo próprio shell e o filtro não chega ao Mocha.

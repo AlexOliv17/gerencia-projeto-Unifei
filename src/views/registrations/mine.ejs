@@ -1,0 +1,33 @@
+<%- include('../partials/header') %>
+<h1>Minhas inscrições</h1>
+<% if (registrations.length === 0) { %>
+  <p id="no-registrations">Você ainda não pediu inscrição em campeonatos.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Campeonato</th><th>Categoria</th><th>Equipe</th><th>Status</th><th>Motivo da recusa</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        <% registrations.forEach((r) => { %>
+          <tr id="registration-<%= r.id %>" data-testid="registration-row">
+            <td class="championship"><a href="/championships/<%= r.championship_id %>"><%= r.championship_name %></a></td>
+            <td class="category"><%= r.category_name %></td>
+            <td class="team"><%= r.team_id ? r.entryName : 'Individual' %></td>
+            <td class="status"><%= labels.REGISTRATION_STATUS[r.status] %></td>
+            <td class="reason"><%= r.refuse_reason || '' %></td>
+            <td class="actions-cell">
+              <% if (canCancel(r)) { %>
+                <div class="actions">
+                  <a id="cancel-registration-<%= r.id %>" class="button small danger cancel-registration"
+                     href="/my/registrations/<%= r.id %>/cancel">Cancelar</a>
+                </div>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { LOCKOUT } = require('../constants');
+const { closeAccountTeams } = require('./teams');
 
 const BCRYPT_COST = 10;
 
@@ -86,13 +87,15 @@ function verifyPassword(user, password) {
 /**
  * Account deletion (LGPD): personal data is wiped but the row stays so championships keep their
  * organizer reference. The original e-mail becomes free for a new sign-up, and the simulated
- * password e-mails (which carry the name and address) are deleted with the reset tokens.
+ * password e-mails (which carry the name and address) are deleted with the reset tokens. The person's
+ * teams are deleted and their open registrations cancelled.
  */
 function anonymizeUser(db, id, now = new Date()) {
   db.transaction(() => {
     const { email } = db.prepare('SELECT email FROM users WHERE id = ?').get(id);
     db.prepare("DELETE FROM outbox WHERE type = 'password_reset' AND recipient = ?").run(email);
     db.prepare('DELETE FROM password_resets WHERE user_id = ?').run(id);
+    closeAccountTeams(db, id);
     db.prepare(`UPDATE users SET name = 'Usuário removido', email = ?, password_hash = '', document = NULL,
       league_name = NULL, status = 'suspended', failed_login_attempts = 0, locked_until = NULL,
       deleted_at = ?, updated_at = ? WHERE id = ?`)

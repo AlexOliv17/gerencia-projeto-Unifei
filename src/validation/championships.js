@@ -75,6 +75,7 @@ function validateChampionshipInput(input, { cityIds = [] } = {}) {
 
   data.rules = optional(input.rules);
   data.contact = optional(input.contact);
+  data.allowWaitlist = Boolean(input.allow_waitlist);
 
   return { errors, data };
 }

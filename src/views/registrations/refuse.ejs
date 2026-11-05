@@ -1,0 +1,16 @@
+<%- include('../partials/header') %>
+<h1>Recusar inscrição</h1>
+<div class="card">
+  <p>Recusar a inscrição de <strong><%= registration.entryName %></strong> em
+    <strong><%= registration.championship_name %></strong> (<%= registration.category_name %>)? O responsável será avisado com o motivo.</p>
+  <form class="stacked" method="post" action="/registrations/<%= registration.id %>/refuse" novalidate>
+    <div class="field">
+      <label for="reason">Justificativa *</label>
+      <textarea id="reason" name="reason"></textarea>
+      <%- include('../partials/error', { field: 'reason' }) %>
+    </div>
+    <button type="submit" id="confirm-refuse" class="danger">Recusar inscrição</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

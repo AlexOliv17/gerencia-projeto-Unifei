@@ -39,6 +39,7 @@ test('campeonato válido gera dados normalizados', () => {
     maxSlots: 12,
     rules: 'Regras',
     contact: null,
+    allowWaitlist: false,
   });
 });
 
@@ -108,4 +109,9 @@ test('modalidade, formato e cidade fora da lista', () => {
 
 test('parseCategories remove vazios e duplicados', () => {
   assert.deepEqual(parseCategories('Adulto, sub-17, adulto,'), ['Adulto', 'sub-17']);
+});
+
+test('lista de espera marcada no formulário', () => {
+  assert.equal(validate(valid({ allow_waitlist: 'on' })).data.allowWaitlist, true);
+  assert.equal(validate(valid()).data.allowWaitlist, false);
 });

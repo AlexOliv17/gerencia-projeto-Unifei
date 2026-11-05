@@ -14,4 +14,14 @@ function openDatabase(file) {
   return db;
 }
 
-module.exports = { openDatabase };
+/**
+ * Deletes the SQLite file (and its WAL files) and opens a fresh one. `CREATE TABLE IF NOT EXISTS` never
+ * changes a table that already exists, so a database from an earlier release needs this to get new
+ * columns and CHECK lists.
+ */
+function resetDatabase(file) {
+  for (const suffix of ['', '-wal', '-shm']) fs.rmSync(file + suffix, { force: true });
+  return openDatabase(file);
+}
+
+module.exports = { openDatabase, resetDatabase };

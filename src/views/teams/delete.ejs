@@ -1,0 +1,10 @@
+<%- include('../partials/header') %>
+<h1>Excluir equipe</h1>
+<div class="card">
+  <p>Excluir <strong><%= team.name %></strong>? A lista de atletas é apagada e as inscrições pendentes são canceladas.</p>
+  <form method="post" action="/my/teams/<%= team.id %>/delete">
+    <button type="submit" id="confirm-delete" class="danger">Excluir equipe</button>
+    <a class="button secondary" href="/my/teams">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

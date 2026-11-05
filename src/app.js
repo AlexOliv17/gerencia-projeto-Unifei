@@ -31,6 +31,8 @@ function createApp({ db }) {
   app.use(require('./routes/profile'));
   app.use(require('./routes/admin'));
   app.use(require('./routes/organizer'));
+  app.use(require('./routes/teams'));
+  app.use(require('./routes/registrations'));
   app.use(require('./routes/championships'));
 
   app.use((req, res) => render404(res));

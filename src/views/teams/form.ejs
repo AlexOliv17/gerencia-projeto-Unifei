@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<h1><%= title %></h1>
+<div class="card">
+  <form id="team-form" class="stacked" method="post"
+        action="<%= mode === 'new' ? '/my/teams/new' : `/my/teams/${team.id}/edit` %>" novalidate>
+    <div class="field">
+      <label for="name">Nome *</label>
+      <input type="text" id="name" name="name" value="<%= values.name || '' %>">
+      <%- include('../partials/error', { field: 'name' }) %>
+    </div>
+    <div class="field">
+      <label for="sport">Modalidade *</label>
+      <select id="sport" name="sport">
+        <option value="">Selecione</option>
+        <% labels.TEAM_SPORTS.forEach((key) => { %>
+          <option value="<%= key %>" <%= values.sport === key ? 'selected' : '' %>><%= labels.SPORTS[key] %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'sport' }) %>
+    </div>
+    <div class="field">
+      <label for="city_id">Cidade *</label>
+      <select id="city_id" name="city_id">
+        <option value="">Selecione</option>
+        <% cities.forEach((city) => { %>
+          <option value="<%= city.id %>" <%= String(values.city_id) === String(city.id) ? 'selected' : '' %>><%= city.name %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'city_id' }) %>
+    </div>
+    <div class="field">
+      <label for="athletes">Atletas * <span class="hint">(um por linha: Nome; número de identificação ou camisa)</span></label>
+      <textarea id="athletes" name="athletes" rows="8" placeholder="Ana Souza; 10"><%= values.athletes || '' %></textarea>
+      <%- include('../partials/error', { field: 'athletes' }) %>
+    </div>
+    <button type="submit" id="submit">Salvar</button>
+    <a class="button secondary" href="/my/teams">Cancelar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

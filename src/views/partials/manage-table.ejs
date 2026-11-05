@@ -20,6 +20,11 @@
             <td class="dates"><%= formatBrDate(c.start_date) %> a <%= formatBrDate(c.end_date) %></td>
             <td class="status"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[c.displayStatus] %></td>
             <td class="actions-cell">
+              <% if (allowEdit) { %>
+                <div class="actions">
+                  <a id="registrations-<%= c.id %>" class="button small secondary" href="/my/championships/<%= c.id %>/registrations">Inscrições</a>
+                </div>
+              <% } %>
               <% if (c.status === 'active' && allowManage) { %>
                 <div class="actions">
                   <% if (allowEdit) { %>
