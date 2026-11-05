@@ -1,6 +1,9 @@
 const assert = require('node:assert/strict');
 const { MESSAGES } = require('../../src/constants');
 const { createTeam } = require('../../src/models/teams');
+const { createUser } = require('../../src/models/users');
+const { createChampionship } = require('../../src/models/championships');
+const { addDaysIso, todayIso } = require('../../src/validation/dates');
 const { startTestServer } = require('./support/server');
 const { buildDriver, quitDriver } = require('./support/driver');
 const {
@@ -30,6 +33,22 @@ describe('RFS14 - Manter Equipe', function () {
     const now = new Date().toISOString();
     db.prepare(`INSERT INTO registrations (championship_id, category_id, team_id, user_id, status, created_at, updated_at)
       VALUES (?, ?, ?, ?, 'pending', ?, ?)`).run(sub17.championship_id, sub17.id, disposableId, joao.id, now, now);
+
+    // An organizer whose championship received a team, then went back to pending validation (BUG-R2-03).
+    const pendingOrganizer = createUser(db, {
+      name: 'Rita Revalidada', email: 'revalidada@exemplo.com', password: 'Senha@123', cityId: joao.city_id,
+      role: 'organizer', status: 'active', document: '11122233344', leagueName: 'Liga Revalidada',
+    });
+    const champ = createChampionship(db, pendingOrganizer, {
+      name: 'Copa Revalidada', sport: 'futsal', categories: ['Livre'], cityId: joao.city_id, venue: 'Quadra',
+      startDate: addDaysIso(todayIso(), 30), endDate: addDaysIso(todayIso(), 31), registrationDeadline: addDaysIso(todayIso(), 20),
+      format: 'knockout', maxSlots: null, rules: null, contact: null, allowWaitlist: false,
+    });
+    const livre = db.prepare('SELECT id FROM championship_categories WHERE championship_id = ?').get(champ).id;
+    const unidos = db.prepare("SELECT id FROM teams WHERE name = 'Unidos de Itajubá'").get().id;
+    db.prepare(`INSERT INTO registrations (championship_id, category_id, team_id, user_id, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'pending', ?, ?)`).run(champ, livre, unidos, joao.id, now, now);
+    db.prepare("UPDATE users SET status = 'pending' WHERE id = ?").run(pendingOrganizer);
   });
 
   after(async function () {
@@ -155,7 +174,16 @@ describe('RFS14 - Manter Equipe', function () {
     await visit(driver, server.baseUrl, `/teams/${teamId('Unidos de Itajubá')}`);
     assert.equal(await text(driver, '#team-name'), 'Unidos de Itajubá');
     assert.equal((await texts(driver, 'li[data-testid="athlete"]')).length, 6);
-    assert.deepEqual(await texts(driver, 'tr[data-testid="team-registration-row"] .status'), ['Pendente']);
+    const championships = await texts(driver, 'tr[data-testid="team-registration-row"] .championship');
+    const statuses = await texts(driver, 'tr[data-testid="team-registration-row"] .status');
+    assert.equal(statuses[championships.indexOf('Copa Itajubá de Futsal')], 'Pendente');
+  });
+
+  it('organizador que volta a pendente não vê mais a lista de atletas (BUG-R2-03)', async function () {
+    await login(driver, server.baseUrl, 'revalidada@exemplo.com', 'Senha@123');
+    await visit(driver, server.baseUrl, `/teams/${teamId('Unidos de Itajubá')}`);
+    assert.equal(await text(driver, 'h1'), MESSAGES.forbidden);
+    assert.equal(await exists(driver, 'li[data-testid="athlete"]'), false);
   });
 
   it('administrador não tem equipes', async function () {

@@ -96,7 +96,8 @@ function closeAccountTeams(db, userId) {
 function canViewTeam(db, user, team) {
   if (!user) return false;
   if (team.owner_id === user.id) return true;
-  if (user.role !== 'organizer') return false;
+  // Same rule as managing championships (Mantis #3): a pending organizer has no organizer rights.
+  if (user.role !== 'organizer' || user.status !== 'active') return false;
   return Boolean(db.prepare(`SELECT 1 FROM registrations r JOIN championships c ON c.id = r.championship_id
     WHERE r.team_id = ? AND c.organizer_id = ?`).get(team.id, user.id));
 }
