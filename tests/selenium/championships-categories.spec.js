@@ -3,7 +3,7 @@ const { MESSAGES } = require('../../src/constants');
 const { startTestServer } = require('./support/server');
 const { buildDriver, quitDriver } = require('./support/driver');
 const {
-  visit, fill, find, submit, flash, fieldError, exists, login, logout,
+  visit, fill, find, selectByText, submit, flash, fieldError, exists, login, logout,
 } = require('./support/ui');
 
 describe('Campeonato - categorias e lista de espera', function () {
@@ -48,6 +48,15 @@ describe('Campeonato - categorias e lista de espera', function () {
     await submit(driver);
     assert.equal(await fieldError(driver, 'categories'), MESSAGES.categoryInUse('adulto'));
     assert.deepEqual(registrationCategories(), ['adulto', 'adulto']);
+  });
+
+  it('não muda a modalidade depois de haver inscrições (BUG-R2-02)', async function () {
+    await editCopa();
+    await selectByText(driver, 'sport', 'Vôlei');
+    await selectByText(driver, 'format', 'Pontos corridos');
+    await submit(driver);
+    assert.equal(await fieldError(driver, 'sport'), MESSAGES.championshipSportLocked);
+    assert.equal(server.db.prepare('SELECT sport FROM championships WHERE id = ?').get(copaId()).sport, 'futsal');
   });
 
   it('salva a opção de lista de espera', async function () {

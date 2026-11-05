@@ -104,6 +104,7 @@ const MESSAGES = {
   teamSaved: 'Equipe atualizada com sucesso.',
   teamDeleted: 'Equipe excluída.',
   categoryInUse: (name) => `A categoria ${name} tem inscrições e não pode ser removida.`,
+  championshipSportLocked: 'A modalidade não pode mudar depois que houver inscrições.',
   registrationClosed: 'As inscrições deste campeonato não estão abertas.',
   registrationOwnChampionship: 'Você não pode inscrever equipes no próprio campeonato.',
   registrationSportMismatch: 'A modalidade da equipe deve ser a mesma do campeonato.',

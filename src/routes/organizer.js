@@ -97,9 +97,12 @@ router.post('/my/championships/:id/edit', requireRole('organizer'), loadManageab
   const { db } = req.app.locals;
   const cities = listCities(db);
   const { errors, data } = validateChampionshipInput(req.body, { cityIds: cities.map((c) => c.id) });
+  // Registered teams were checked against the current sport (RFS15 rule 2), so it is frozen once there are any.
+  const inUse = categoriesInUse(db, req.championship.id);
+  if (!errors.sport && inUse.length && data.sport !== req.championship.sport) errors.sport = MESSAGES.championshipSportLocked;
   if (!errors.categories) {
     const kept = new Set(data.categories.map((name) => name.toLowerCase()));
-    const removed = categoriesInUse(db, req.championship.id).find((name) => !kept.has(name.toLowerCase()));
+    const removed = inUse.find((name) => !kept.has(name.toLowerCase()));
     if (removed) errors.categories = MESSAGES.categoryInUse(removed);
   }
   if (Object.keys(errors).length) {
