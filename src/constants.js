@@ -118,6 +118,8 @@ const MESSAGES = {
   registrationCancelled: 'Inscrição cancelada.',
   registrationCancelClosed: 'O prazo para cancelar esta inscrição terminou.',
   registrationNotCancellable: 'Esta inscrição não pode mais ser cancelada.',
+  registrationApproved: 'Inscrição aprovada.',
+  registrationRefused: 'Inscrição recusada.',
 };
 
 module.exports = {

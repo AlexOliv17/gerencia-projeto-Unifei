@@ -69,6 +69,23 @@ function cancelRegistration(db, id) {
   setStatus(db, id, 'cancelled');
 }
 
+/** Organizer review list (RFS16), optionally filtered by category and status; oldest request first. */
+function listRegistrationsByChampionship(db, championshipId, { categoryId, status } = {}) {
+  const where = ['r.championship_id = :championshipId'];
+  const params = { championshipId };
+  if (categoryId) { where.push('r.category_id = :categoryId'); params.categoryId = categoryId; }
+  if (status) { where.push('r.status = :status'); params.status = status; }
+  return db.prepare(`${SELECT} WHERE ${where.join(' AND ')} ORDER BY r.created_at, r.id`).all(params).map(decorate);
+}
+
+function approveRegistration(db, id) {
+  setStatus(db, id, 'approved', { decided: true });
+}
+
+function refuseRegistration(db, id, reason) {
+  setStatus(db, id, 'refused', { reason, decided: true });
+}
+
 /** Public detail: approved entries per category, with the occupied places. */
 function approvedEntriesByCategory(db, championshipId) {
   const categories = db.prepare('SELECT id, name FROM championship_categories WHERE championship_id = ? ORDER BY id')
@@ -83,5 +100,6 @@ function approvedEntriesByCategory(db, championshipId) {
 
 module.exports = {
   entryName, createRegistration, getRegistration, listRegistrationsByUser, approvedCount, hasOpenRegistration,
-  setStatus, cancelRegistration, approvedEntriesByCategory,
+  setStatus, cancelRegistration, approvedEntriesByCategory, listRegistrationsByChampionship, approveRegistration,
+  refuseRegistration,
 };

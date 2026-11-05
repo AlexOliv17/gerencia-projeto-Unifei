@@ -1,0 +1,78 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Inscrições — <%= championship.name %></h1>
+  <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+</div>
+<% if (championship.status !== 'active') { %>
+  <p id="review-closed" class="notice">Campeonato <%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus].toLowerCase() %>: as inscrições ficam só para consulta.</p>
+<% } %>
+
+<div class="card">
+  <p><strong>Vagas aprovadas por categoria</strong></p>
+  <ul class="slots">
+    <% categories.forEach((c) => { %>
+      <li id="slots-<%= c.id %>" data-testid="slots">
+        <span class="category"><%= c.name %></span>:
+        <span class="count"><%= championship.max_slots ? `${c.approved}/${championship.max_slots}` : c.approved %></span>
+      </li>
+    <% }) %>
+  </ul>
+</div>
+
+<form id="filters" class="card filters" method="get" action="/my/championships/<%= championship.id %>/registrations" novalidate>
+  <div class="field">
+    <label for="category_id">Categoria</label>
+    <select id="category_id" name="category_id">
+      <option value="">Todas</option>
+      <% categories.forEach((c) => { %>
+        <option value="<%= c.id %>" <%= filters.category_id === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Todos</option>
+      <% Object.entries(labels.REGISTRATION_STATUS).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button type="submit" id="filter-submit">Filtrar</button>
+</form>
+
+<% if (registrations.length === 0) { %>
+  <p id="no-registrations">Nenhuma inscrição encontrada.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th><%= championship.sport === 'street_run' ? 'Participante' : 'Equipe' %></th><th>Categoria</th><th>Status</th><th>Motivo da recusa</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        <% registrations.forEach((r) => { %>
+          <tr id="review-<%= r.id %>" data-testid="review-row">
+            <td class="entry">
+              <% if (r.team_id && !r.team_deleted_at) { %><a href="/teams/<%= r.team_id %>"><%= r.entryName %></a><% } else { %><%= r.entryName %><% } %>
+            </td>
+            <td class="category"><%= r.category_name %></td>
+            <td class="status"><%= labels.REGISTRATION_STATUS[r.status] %></td>
+            <td class="reason"><%= r.refuse_reason || '' %></td>
+            <td class="actions-cell">
+              <% if (canDecide(r)) { %>
+                <div class="actions">
+                  <form method="post" action="/registrations/<%= r.id %>/approve">
+                    <button type="submit" id="approve-<%= r.id %>" class="small">Aprovar</button>
+                  </form>
+                  <a id="refuse-<%= r.id %>" class="button small danger" href="/registrations/<%= r.id %>/refuse">Recusar</a>
+                </div>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<p><a href="/my/championships">Voltar para Meus campeonatos</a></p>
+<%- include('../partials/footer') %>
