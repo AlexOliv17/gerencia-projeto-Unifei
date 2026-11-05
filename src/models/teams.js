@@ -77,6 +77,21 @@ function deleteTeam(db, id) {
   })();
 }
 
+/**
+ * Account deletion (LGPD): every team of the person is deleted as above, without the approved-registration
+ * block, and their own individual registrations still open in active championships are cancelled.
+ */
+function closeAccountTeams(db, userId) {
+  db.transaction(() => {
+    for (const { id } of db.prepare('SELECT id FROM teams WHERE owner_id = ? AND deleted_at IS NULL').all(userId)) {
+      deleteTeam(db, id);
+    }
+    db.prepare(`UPDATE registrations SET status = 'cancelled', updated_at = ?
+      WHERE user_id = ? AND team_id IS NULL AND status IN (${OPEN})
+        AND championship_id IN (SELECT id FROM championships WHERE status = 'active')`).run(new Date().toISOString(), userId);
+  })();
+}
+
 /** The athlete list is personal data: only the owner and organizers the team applied to can see it. */
 function canViewTeam(db, user, team) {
   if (!user) return false;
@@ -96,5 +111,5 @@ function registrationsOfTeam(db, teamId) {
 
 module.exports = {
   createTeam, getTeam, listTeamsByOwner, listTeamsForSport, teamNameInUse, updateTeam, hasOpenRegistrations,
-  hasApprovedInActiveChampionship, deleteTeam, canViewTeam, registrationsOfTeam,
+  hasApprovedInActiveChampionship, deleteTeam, closeAccountTeams, canViewTeam, registrationsOfTeam,
 };

@@ -28,3 +28,29 @@ test('seed cria equipes, atletas e inscrições de exemplo (e pode rodar de novo
     'Equipe incompleta');
   assert.ok(db.prepare("SELECT 1 FROM users WHERE email = 'capita@arenalocal.com'").get());
 });
+
+test('excluir a conta apaga as equipes e cancela as inscrições abertas, mesmo aprovadas', (t) => {
+  const { anonymizeUser } = require('../../src/models/users');
+  const db = seededDb(t);
+  const maria = db.prepare("SELECT id FROM users WHERE email = 'capita@arenalocal.com'").get().id;
+  anonymizeUser(db, maria);
+  const teams = db.prepare('SELECT id, deleted_at FROM teams WHERE owner_id = ?').all(maria);
+  assert.equal(teams.length, 2);
+  assert.ok(teams.every((team) => team.deleted_at));
+  assert.equal(db.prepare(`SELECT COUNT(*) AS n FROM team_athletes WHERE team_id IN (${teams.map((x) => x.id).join(',')})`)
+    .get().n, 0);
+  const leoas = db.prepare("SELECT r.status FROM registrations r JOIN teams ON teams.id = r.team_id WHERE teams.name = 'Leoas da Serra'")
+    .get();
+  assert.equal(leoas.status, 'cancelled');
+  const refused = db.prepare("SELECT status FROM registrations WHERE refuse_reason = 'Equipe incompleta'").get();
+  assert.equal(refused.status, 'refused');
+});
+
+test('excluir a conta cancela as inscrições individuais abertas', (t) => {
+  const { anonymizeUser } = require('../../src/models/users');
+  const db = seededDb(t);
+  const joao = db.prepare("SELECT id FROM users WHERE email = 'usuario@arenalocal.com'").get().id;
+  anonymizeUser(db, joao);
+  const statuses = db.prepare('SELECT status FROM registrations WHERE user_id = ?').all(joao).map((r) => r.status);
+  assert.deepEqual(statuses, ['cancelled', 'cancelled']);
+});
