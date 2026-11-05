@@ -28,7 +28,7 @@ Principais funcionalidades previstas:
 |---|---|---|---|
 | R00 | Documentação: DRE, estimativa de tamanho (PCU), cronograma, matriz de rastreabilidade e plano de projeto | 20/10/2026 | `v1.0-release-0` |
 | R01 | 2 CRUDs: [RFC01] Manter Usuário e [RFC02] Manter Campeonato | 29/10/2026 | `v1.1-release-1` |
-| R02 | 4 CRUDs acumulados: + [RFC07] Manter Equipe e [RFC08] Realizar Inscrição | — | `v1.2-release-2` |
+| R02 | 4 CRUDs acumulados: + [RFC07] Manter Equipe e [RFC08] Realizar Inscrição | 05/11/2026 | `v1.2-release-2` |
 | R03 | 6 CRUDs acumulados: + [RFC03] Manter Tabela de Jogos e [RFC04] Registrar Resultados; + relatório [RFC13] | — | `v1.3-release-3` |
 | R04 | 8 CRUDs acumulados + 1 relatório | — | `v1.4-release-4` |
 
