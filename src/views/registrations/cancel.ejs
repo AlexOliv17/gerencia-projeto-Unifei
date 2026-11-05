@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<h1>Cancelar inscrição</h1>
+<div class="card">
+  <p>Cancelar a inscrição de <strong><%= registration.team_id ? registration.entryName : 'você' %></strong>
+    em <strong><%= registration.championship_name %></strong> (<%= registration.category_name %>)?</p>
+  <form method="post" action="/my/registrations/<%= registration.id %>/cancel">
+    <button type="submit" id="confirm-cancel-registration" class="danger">Cancelar inscrição</button>
+    <a class="button secondary" href="/my/registrations">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

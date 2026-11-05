@@ -2,6 +2,7 @@ const express = require('express');
 const { render404 } = require('../middleware/session');
 const { listCities } = require('../models/cities');
 const { getChampionship, searchPublicChampionships } = require('../models/championships');
+const { approvedEntriesByCategory } = require('../models/registrations');
 const { parseSearchFilters } = require('../validation/championships');
 
 const router = express.Router();
@@ -27,7 +28,15 @@ router.get('/championships', (req, res) => {
 router.get('/championships/:id', (req, res) => {
   const championship = getChampionship(req.app.locals.db, Number(req.params.id));
   if (!championship) return render404(res);
-  return res.render('championships/show', { title: championship.name, championship });
+  const { user } = req;
+  const canRegister = Boolean(user) && ['user', 'organizer'].includes(user.role)
+    && championship.displayStatus === 'open' && championship.organizer_id !== user.id;
+  return res.render('championships/show', {
+    title: championship.name,
+    championship,
+    canRegister,
+    approved: approvedEntriesByCategory(req.app.locals.db, championship.id),
+  });
 });
 
 module.exports = router;

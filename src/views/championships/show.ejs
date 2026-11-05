@@ -2,6 +2,9 @@
 <div class="page-head">
   <h1 id="championship-name"><%= championship.name %></h1>
   <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+  <% if (canRegister) { %>
+    <a id="register-button" class="button" href="/championships/<%= championship.id %>/register">Inscrever</a>
+  <% } %>
 </div>
 
 <% if (championship.status === 'cancelled') { %>
@@ -37,6 +40,23 @@
       <dd id="championship-rules"><%= championship.rules %></dd>
     <% } %>
   </dl>
+</div>
+
+<h2><%= championship.sport === 'street_run' ? 'Participantes inscritos' : 'Equipes inscritas' %></h2>
+<div id="approved-entries" class="card">
+  <% approved.forEach((c) => { %>
+    <div id="approved-category-<%= c.id %>" data-testid="approved-category" class="approved-category">
+      <h3><span class="category"><%= c.category %></span>
+        <small class="hint">(<span class="slots"><%= championship.max_slots ? `${c.approved}/${championship.max_slots}` : c.approved %></span> aprovadas)</small></h3>
+      <% if (c.entries.length === 0) { %>
+        <p class="hint">Nenhuma inscrição aprovada ainda.</p>
+      <% } else { %>
+        <ul>
+          <% c.entries.forEach((name) => { %><li data-testid="approved-entry"><%= name %></li><% }) %>
+        </ul>
+      <% } %>
+    </div>
+  <% }) %>
 </div>
 <p><a href="/championships">Voltar para os campeonatos</a></p>
 <%- include('../partials/footer') %>

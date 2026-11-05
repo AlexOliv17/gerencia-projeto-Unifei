@@ -113,6 +113,11 @@ const MESSAGES = {
   registrationAlreadyDecided: 'Esta inscrição já foi analisada.',
   registrationNoSlots: 'Não há vagas disponíveis nesta categoria.',
   refuseReasonRequired: 'Informe a justificativa da recusa.',
+  registrationSent: 'Inscrição enviada. Aguarde a análise do organizador.',
+  registrationWaitlisted: 'Inscrição registrada na lista de espera.',
+  registrationCancelled: 'Inscrição cancelada.',
+  registrationCancelClosed: 'O prazo para cancelar esta inscrição terminou.',
+  registrationNotCancellable: 'Esta inscrição não pode mais ser cancelada.',
 };
 
 module.exports = {

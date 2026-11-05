@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+<h1>Inscrição em <%= championship.name %></h1>
+<div class="card">
+  <% if (!individual && teams.length === 0) { %>
+    <p id="no-team-notice" class="notice">Você não tem equipe de <%= labels.SPORTS[championship.sport] %> cadastrada.</p>
+    <a id="create-team-link" class="button" href="/my/teams/new">Cadastrar equipe</a>
+    <a class="button secondary" href="/championships/<%= championship.id %>">Voltar</a>
+  <% } else { %>
+    <form id="registration-form" class="stacked" method="post" action="/championships/<%= championship.id %>/register" novalidate>
+      <% if (individual) { %>
+        <p class="hint">Prova individual: a inscrição é em seu nome.</p>
+      <% } else { %>
+        <div class="field">
+          <label for="team_id">Equipe *</label>
+          <select id="team_id" name="team_id">
+            <option value="">Selecione</option>
+            <% teams.forEach((t) => { %>
+              <option value="<%= t.id %>" <%= String(values.team_id) === String(t.id) ? 'selected' : '' %>><%= t.name %></option>
+            <% }) %>
+          </select>
+        </div>
+      <% } %>
+      <div class="field">
+        <label for="category_id">Categoria *</label>
+        <select id="category_id" name="category_id">
+          <option value="">Selecione</option>
+          <% categories.forEach((c) => { %>
+            <option value="<%= c.id %>" <%= String(values.category_id) === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <button type="submit" id="submit">Enviar inscrição</button>
+      <a class="button secondary" href="/championships/<%= championship.id %>">Voltar</a>
+    </form>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>
