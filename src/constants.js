@@ -92,6 +92,11 @@ const MESSAGES = {
   champCancelled: 'Campeonato cancelado.',
   cancelReasonRequired: 'Informe a justificativa do cancelamento.',
   noResults: 'Nenhum campeonato encontrado.',
+  athletesRequired: 'Informe ao menos um atleta.',
+  athletesTooMany: `Informe no máximo ${MAX_ATHLETES} atletas.`,
+  athleteLineInvalid: (line) => `Linha ${line}: use o formato Nome; número.`,
+  athleteNumberRepeated: (line) => `Linha ${line}: número já usado por outro atleta.`,
+  teamSportInvalid: 'Escolha Futebol, Futsal ou Vôlei.',
 };
 
 module.exports = {
