@@ -195,8 +195,10 @@ function notifyResult(db, registration, championship, approved, reason = null) {
 
 router.post('/registrations/:id/approve', ORGANIZER, requireValidated, loadDecision('approve'), (req, res) => {
   const { db } = req.app.locals;
-  approveRegistration(db, req.registration.id);
-  notifyResult(db, req.registration, req.championship, true);
+  db.transaction(() => {
+    approveRegistration(db, req.registration.id);
+    notifyResult(db, req.registration, req.championship, true);
+  })();
   setFlash(req, 'success', MESSAGES.registrationApproved);
   res.redirect(reviewPath(req.championship.id));
 });
@@ -216,8 +218,10 @@ router.post('/registrations/:id/refuse', ORGANIZER, requireValidated, loadDecisi
     return renderRefuse(req, res, { reason: MESSAGES.refuseReasonRequired });
   }
   const { db } = req.app.locals;
-  refuseRegistration(db, req.registration.id, reason);
-  notifyResult(db, req.registration, req.championship, false, reason);
+  db.transaction(() => {
+    refuseRegistration(db, req.registration.id, reason);
+    notifyResult(db, req.registration, req.championship, false, reason);
+  })();
   setFlash(req, 'success', MESSAGES.registrationRefused);
   return res.redirect(reviewPath(req.championship.id));
 });

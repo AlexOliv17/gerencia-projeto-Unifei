@@ -141,8 +141,15 @@ function seed(db) {
 
 if (require.main === module) {
   const config = require('../config');
-  const { openDatabase } = require('./database');
-  const db = openDatabase(config.dbPath);
+  const { resetDatabase } = require('./database');
+  let db;
+  try {
+    db = resetDatabase(config.dbPath);
+  } catch (err) {
+    if (err.code !== 'EBUSY' && err.code !== 'EPERM') throw err;
+    console.error('O banco está em uso. Pare o servidor (npm start) e rode o seed de novo.');
+    process.exit(1);
+  }
   seed(db);
   db.close();
   console.log(`Banco recriado com dados de exemplo em ${config.dbPath}`);
