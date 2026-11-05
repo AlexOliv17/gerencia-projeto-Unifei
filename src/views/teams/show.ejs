@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1 id="team-name"><%= team.name %></h1>
+  <% if (isOwner) { %>
+    <a id="edit-team" class="button secondary" href="/my/teams/<%= team.id %>/edit">Alterar</a>
+  <% } %>
+</div>
+<div class="card">
+  <dl class="details">
+    <dt>Modalidade</dt>
+    <dd id="team-sport"><%= labels.SPORTS[team.sport] %></dd>
+    <dt>Cidade</dt>
+    <dd id="team-city"><%= team.city_name %></dd>
+    <dt>Responsável</dt>
+    <dd id="team-owner"><%= team.owner_name %></dd>
+  </dl>
+</div>
+
+<h2>Atletas</h2>
+<ol id="athletes" class="card">
+  <% team.athletes.forEach((a) => { %>
+    <li data-testid="athlete"><%= a.name %> — <%= a.number %></li>
+  <% }) %>
+</ol>
+
+<h2>Inscrições</h2>
+<% if (registrations.length === 0) { %>
+  <p id="no-registrations">Esta equipe ainda não pediu inscrição em campeonatos.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Campeonato</th><th>Categoria</th><th>Status</th></tr></thead>
+      <tbody>
+        <% registrations.forEach((r) => { %>
+          <tr data-testid="team-registration-row">
+            <td class="championship"><a href="/championships/<%= r.championship_id %>"><%= r.championship_name %></a></td>
+            <td class="category"><%= r.category_name %></td>
+            <td class="status"><%= labels.REGISTRATION_STATUS[r.status] %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<p><a href="<%= isOwner ? '/my/teams' : '/my/championships' %>">Voltar</a></p>
+<%- include('../partials/footer') %>

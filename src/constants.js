@@ -97,6 +97,12 @@ const MESSAGES = {
   athleteLineInvalid: (line) => `Linha ${line}: use o formato Nome; número.`,
   athleteNumberRepeated: (line) => `Linha ${line}: número já usado por outro atleta.`,
   teamSportInvalid: 'Escolha Futebol, Futsal ou Vôlei.',
+  teamNameTaken: 'Você já tem uma equipe com este nome.',
+  teamSportLocked: 'A modalidade não pode mudar enquanto a equipe tiver inscrições ativas.',
+  teamDeleteBlocked: 'Esta equipe tem inscrição aprovada em campeonato ativo e não pode ser excluída.',
+  teamCreated: 'Equipe cadastrada com sucesso.',
+  teamSaved: 'Equipe atualizada com sucesso.',
+  teamDeleted: 'Equipe excluída.',
 };
 
 module.exports = {
