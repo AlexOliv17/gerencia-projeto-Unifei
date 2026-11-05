@@ -6,7 +6,7 @@ const { listCities } = require('../models/cities');
 const { addOutbox } = require('../models/outbox');
 const {
   createChampionship, getChampionship, searchChampionships, updateChampionship, finishChampionship,
-  cancelChampionship, canManage,
+  cancelChampionship, canManage, categoriesInUse,
 } = require('../models/championships');
 const { validateChampionshipInput, parseSearchFilters } = require('../validation/championships');
 const { formatBrDate } = require('../validation/dates');
@@ -40,6 +40,7 @@ function formValues(c) {
     max_slots: c.max_slots ?? '',
     rules: c.rules ?? '',
     contact: c.contact ?? '',
+    allow_waitlist: c.allow_waitlist ? 'on' : '',
   };
 }
 
@@ -96,6 +97,11 @@ router.post('/my/championships/:id/edit', requireRole('organizer'), loadManageab
   const { db } = req.app.locals;
   const cities = listCities(db);
   const { errors, data } = validateChampionshipInput(req.body, { cityIds: cities.map((c) => c.id) });
+  if (!errors.categories) {
+    const kept = new Set(data.categories.map((name) => name.toLowerCase()));
+    const removed = categoriesInUse(db, req.championship.id).find((name) => !kept.has(name.toLowerCase()));
+    if (removed) errors.categories = MESSAGES.categoryInUse(removed);
+  }
   if (Object.keys(errors).length) {
     res.status(422);
     return renderForm(req, res, { mode: 'edit', championship: req.championship, values: req.body, errors });

@@ -69,6 +69,12 @@
       <input type="text" id="max_slots" name="max_slots" inputmode="numeric" value="<%= values.max_slots || '' %>">
       <%- include('../partials/error', { field: 'max_slots' }) %>
     </div>
+    <div class="field checkbox">
+      <label for="allow_waitlist">
+        <input type="checkbox" id="allow_waitlist" name="allow_waitlist" <%= values.allow_waitlist ? 'checked' : '' %>>
+        Permitir lista de espera (quando as vagas de uma categoria acabarem)
+      </label>
+    </div>
     <div class="field">
       <label for="rules">Regulamento</label>
       <textarea id="rules" name="rules"><%= values.rules || '' %></textarea>

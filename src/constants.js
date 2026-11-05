@@ -103,6 +103,7 @@ const MESSAGES = {
   teamCreated: 'Equipe cadastrada com sucesso.',
   teamSaved: 'Equipe atualizada com sucesso.',
   teamDeleted: 'Equipe excluída.',
+  categoryInUse: (name) => `A categoria ${name} tem inscrições e não pode ser removida.`,
 };
 
 module.exports = {

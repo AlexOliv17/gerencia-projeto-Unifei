@@ -58,6 +58,13 @@ function syncCategories(db, championshipId, categories) {
   for (const removed of existing.values()) remove.run(removed.id);
 }
 
+/** Names of the categories that already have registrations (of any status) and so cannot be removed. */
+function categoriesInUse(db, championshipId) {
+  return db.prepare(`SELECT DISTINCT cc.name FROM championship_categories cc
+    JOIN registrations r ON r.category_id = cc.id WHERE cc.championship_id = ? ORDER BY cc.id`)
+    .all(championshipId).map((c) => c.name);
+}
+
 function insertCategories(db, championshipId, categories) {
   const insert = db.prepare('INSERT INTO championship_categories (championship_id, name) VALUES (?, ?)');
   for (const name of categories) insert.run(championshipId, name);
@@ -167,7 +174,8 @@ function canManage(user, championship) {
 }
 
 module.exports = {
-  displayStatus, createChampionship, getChampionship, decorate, insertCategories, categoriesWithIds, searchChampionships,
+  displayStatus, createChampionship, getChampionship, decorate, insertCategories, categoriesWithIds, categoriesInUse,
+  searchChampionships,
   searchPublicChampionships,
   updateChampionship, finishChampionship, cancelChampionship, canManage, periodClause, SELECT, DISPLAY_STATUS_SQL,
 };
