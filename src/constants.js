@@ -32,6 +32,22 @@ const CHAMPIONSHIP_DISPLAY_STATUS = {
   cancelled: 'Cancelado',
 };
 
+/** Championships of these sports take teams; street runs take individual registrations. */
+const TEAM_SPORTS = ['football', 'futsal', 'volleyball'];
+
+const REGISTRATION_STATUS = {
+  pending: 'Pendente',
+  approved: 'Aprovada',
+  refused: 'Recusada',
+  cancelled: 'Cancelada',
+  waitlist: 'Lista de espera',
+};
+
+/** Statuses that still hold (or wait for) a place in the category. */
+const OPEN_REGISTRATION_STATUSES = ['pending', 'approved', 'waitlist'];
+
+const MAX_ATHLETES = 30;
+
 const LOCKOUT = { maxAttempts: 5, minutes: 15 };
 const RESET_TOKEN_TTL_MINUTES = 60;
 
@@ -79,5 +95,6 @@ const MESSAGES = {
 };
 
 module.exports = {
-  SPORTS, FORMATS, ROLES, USER_STATUS, CHAMPIONSHIP_DISPLAY_STATUS, LOCKOUT, RESET_TOKEN_TTL_MINUTES, MESSAGES,
+  SPORTS, FORMATS, ROLES, USER_STATUS, CHAMPIONSHIP_DISPLAY_STATUS, TEAM_SPORTS, REGISTRATION_STATUS,
+  OPEN_REGISTRATION_STATUSES, MAX_ATHLETES, LOCKOUT, RESET_TOKEN_TTL_MINUTES, MESSAGES,
 };

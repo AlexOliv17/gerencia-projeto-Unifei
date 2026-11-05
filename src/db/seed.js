@@ -17,6 +17,7 @@ const USERS = [
     city: 'Pouso Alegre', document: '12345678901', leagueName: 'Liga Pouso Alegre',
   },
   { name: 'João Torcedor', email: 'usuario@arenalocal.com', password: 'Senha@123', role: 'user', status: 'active', city: 'Itajubá' },
+  { name: 'Maria Capitã', email: 'capita@arenalocal.com', password: 'Senha@123', role: 'user', status: 'active', city: 'Itajubá' },
 ];
 
 // Day offsets are relative to today so the derived status ("Em inscrição", "Em andamento") stays true.
@@ -45,13 +46,42 @@ const CHAMPIONSHIPS = [
   },
 ];
 
+const athletes = (names) => names.map((name, i) => ({ name, number: String(i + 1) }));
+
+const TEAMS = [
+  {
+    name: 'Unidos de Itajubá', owner: 'usuario@arenalocal.com', sport: 'futsal', city: 'Itajubá',
+    athletes: athletes(['Pedro Alves', 'Lucas Lima', 'Rafael Costa', 'Bruno Dias', 'Thiago Rocha', 'Diego Melo']),
+  },
+  {
+    name: 'Leoas da Serra', owner: 'capita@arenalocal.com', sport: 'futsal', city: 'Itajubá',
+    athletes: athletes(['Ana Souza', 'Beatriz Reis', 'Carla Nunes', 'Daniela Prado', 'Elisa Moura', 'Fernanda Luz']),
+  },
+  {
+    name: 'Vôlei Sapucaí', owner: 'capita@arenalocal.com', sport: 'volleyball', city: 'Santa Rita do Sapucaí',
+    athletes: athletes(['Gabriela Pinto', 'Helena Faria', 'Isabela Torres', 'Júlia Campos', 'Karina Vaz', 'Larissa Rios']),
+  },
+];
+
+// team: null is an individual registration (street run) made by `user`.
+const REGISTRATIONS = [
+  { championship: 'Copa Itajubá de Futsal', category: 'Adulto', team: 'Unidos de Itajubá', user: 'usuario@arenalocal.com', status: 'pending' },
+  { championship: 'Copa Itajubá de Futsal', category: 'Adulto', team: 'Leoas da Serra', user: 'capita@arenalocal.com', status: 'approved' },
+  {
+    championship: 'Liga de Vôlei Santa Rita', category: 'Feminino', team: 'Vôlei Sapucaí', user: 'capita@arenalocal.com',
+    status: 'refused', refuseReason: 'Equipe incompleta',
+  },
+  { championship: 'Corrida Rústica de Pouso Alegre', category: '5 km', team: null, user: 'usuario@arenalocal.com', status: 'pending' },
+];
+
 /** Wipes every table and inserts the fixed demo/test data. */
 function seed(db) {
   const now = new Date().toISOString();
   const today = todayIso();
 
   db.transaction(() => {
-    for (const table of ['outbox', 'championship_categories', 'championships', 'password_resets', 'users', 'cities']) {
+    for (const table of ['registrations', 'team_athletes', 'teams', 'outbox', 'championship_categories', 'championships',
+      'password_resets', 'users', 'cities']) {
       db.prepare(`DELETE FROM ${table}`).run();
     }
 
@@ -83,6 +113,28 @@ function seed(db) {
         c.status ?? 'active', c.cancelReason ?? null, now, now,
       ).lastInsertRowid;
       for (const category of c.categories) insertCategory.run(id, category);
+    }
+
+    const teamIds = {};
+    const insertTeam = db.prepare(`INSERT INTO teams (owner_id, name, sport, city_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)`);
+    const insertAthlete = db.prepare('INSERT INTO team_athletes (team_id, name, number, position) VALUES (?, ?, ?, ?)');
+    for (const t of TEAMS) {
+      const id = insertTeam.run(userIds[t.owner], t.name, t.sport, cityIds[t.city], now, now).lastInsertRowid;
+      t.athletes.forEach((a, i) => insertAthlete.run(id, a.name, a.number, i + 1));
+      teamIds[t.name] = id;
+    }
+
+    const category = db.prepare(`SELECT cc.id AS categoryId, c.id AS championshipId FROM championship_categories cc
+      JOIN championships c ON c.id = cc.championship_id WHERE c.name = ? AND cc.name = ?`);
+    const insertRegistration = db.prepare(`INSERT INTO registrations
+      (championship_id, category_id, team_id, user_id, status, refuse_reason, decided_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    for (const r of REGISTRATIONS) {
+      const { categoryId, championshipId } = category.get(r.championship, r.category);
+      const decided = r.status === 'approved' || r.status === 'refused' ? now : null;
+      insertRegistration.run(championshipId, categoryId, r.team ? teamIds[r.team] : null, userIds[r.user], r.status,
+        r.refuseReason ?? null, decided, now, now);
     }
   })();
 }

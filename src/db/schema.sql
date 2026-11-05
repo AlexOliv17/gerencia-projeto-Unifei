@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS championships (
   contact TEXT,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'finished', 'cancelled')),
   cancel_reason TEXT,
+  allow_waitlist INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -57,10 +58,42 @@ CREATE TABLE IF NOT EXISTS championship_categories (
 
 CREATE TABLE IF NOT EXISTS outbox (
   id INTEGER PRIMARY KEY,
-  type TEXT NOT NULL CHECK (type IN ('password_reset', 'championship_changed', 'championship_cancelled')),
+  type TEXT NOT NULL CHECK (type IN ('password_reset', 'championship_changed', 'championship_cancelled', 'registration_result')),
   recipient TEXT NOT NULL,
   subject TEXT NOT NULL,
   body TEXT NOT NULL,
   link TEXT,
   created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS teams (
+  id INTEGER PRIMARY KEY,
+  owner_id INTEGER NOT NULL REFERENCES users(id),
+  name TEXT NOT NULL,
+  sport TEXT NOT NULL CHECK (sport IN ('football', 'futsal', 'volleyball')),
+  city_id INTEGER NOT NULL REFERENCES cities(id),
+  deleted_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS team_athletes (
+  id INTEGER PRIMARY KEY,
+  team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  number TEXT NOT NULL,
+  position INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS registrations (
+  id INTEGER PRIMARY KEY,
+  championship_id INTEGER NOT NULL REFERENCES championships(id),
+  category_id INTEGER NOT NULL REFERENCES championship_categories(id),
+  team_id INTEGER REFERENCES teams(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'refused', 'cancelled', 'waitlist')),
+  refuse_reason TEXT,
+  decided_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
 );
