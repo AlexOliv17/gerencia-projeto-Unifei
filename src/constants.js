@@ -104,6 +104,15 @@ const MESSAGES = {
   teamSaved: 'Equipe atualizada com sucesso.',
   teamDeleted: 'Equipe excluída.',
   categoryInUse: (name) => `A categoria ${name} tem inscrições e não pode ser removida.`,
+  registrationClosed: 'As inscrições deste campeonato não estão abertas.',
+  registrationOwnChampionship: 'Você não pode inscrever equipes no próprio campeonato.',
+  registrationSportMismatch: 'A modalidade da equipe deve ser a mesma do campeonato.',
+  registrationDuplicate: 'Esta inscrição já foi feita nesta categoria.',
+  registrationFull: 'As vagas desta categoria estão esgotadas.',
+  registrationReviewClosed: 'Este campeonato não aceita mais análise de inscrições.',
+  registrationAlreadyDecided: 'Esta inscrição já foi analisada.',
+  registrationNoSlots: 'Não há vagas disponíveis nesta categoria.',
+  refuseReasonRequired: 'Informe a justificativa da recusa.',
 };
 
 module.exports = {
