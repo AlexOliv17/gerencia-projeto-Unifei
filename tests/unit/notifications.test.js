@@ -6,7 +6,7 @@ const path = require('node:path');
 const { openDatabase } = require('../../src/db/database');
 const { seed } = require('../../src/db/seed');
 const { notify, savePreferences, unreadCount } = require('../../src/models/notifications');
-const { follow } = require('../../src/models/follows');
+const { follow, teamFollowers } = require('../../src/models/follows');
 const { anonymizeUser } = require('../../src/models/users');
 
 function seededDb(t) {
@@ -72,4 +72,13 @@ test('seguir o mesmo campeonato duas vezes guarda um registro só', (t) => {
   follow(db, maria, { championshipId: 2 });
   follow(db, maria, { championshipId: 2 });
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM follows WHERE user_id = ? AND championship_id = 2').get(maria).n, 1);
+});
+
+test('equipe excluída sai da lista de quem a seguia e não gera mais avisos (BUG-R4-02)', (t) => {
+  const db = seededDb(t);
+  const leoas = db.prepare("SELECT id FROM teams WHERE name = 'Leoas da Serra'").get().id;
+  assert.deepEqual(teamFollowers(db, [leoas]), [idOf(db, 'usuario@arenalocal.com')]);
+  anonymizeUser(db, idOf(db, 'capita@arenalocal.com'));
+  assert.deepEqual(teamFollowers(db, [leoas]), []);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM follows WHERE team_id = ?').get(leoas).n, 0);
 });
