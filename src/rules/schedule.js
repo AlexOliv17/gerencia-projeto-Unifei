@@ -82,6 +82,23 @@ function bracket(seeds) {
 }
 
 /**
+ * Seeds for the knockout after the groups: group winners first, then the runners-up, rotated until no first-round
+ * game puts two teams of the same group together (with 3 groups the plain order would pair C1 with C2).
+ * `tables` = [{ group, first, second }].
+ */
+function crossGroupSeeds(tables) {
+  const winners = tables.map((t) => t.first).filter(Boolean);
+  const runners = tables.map((t) => t.second).filter(Boolean);
+  const groupOf = new Map(tables.flatMap((t) => [[t.first, t.group], [t.second, t.group]]));
+  for (let shift = 0; shift < runners.length; shift += 1) {
+    const seeds = [...winners, ...runners.slice(shift), ...runners.slice(0, shift)];
+    const clash = bracket(seeds)[0].some((m) => !m.bye && groupOf.get(m.a) === groupOf.get(m.b));
+    if (!clash) return seeds;
+  }
+  return [...winners, ...runners];
+}
+
+/**
  * Dates and start times for rounds played one after the other at one venue: round r on firstDate + r × interval,
  * its games back to back from firstTime. Returns { schedule } or { error: 'dayFull' | 'afterEnd' }.
  */
@@ -97,5 +114,5 @@ function scheduleRounds({ matchesPerRound, firstDate, firstTime, duration, inter
 }
 
 module.exports = {
-  roundRobinRounds, splitGroups, seedOrder, knockoutRoundName, bracket, scheduleRounds,
+  roundRobinRounds, splitGroups, seedOrder, knockoutRoundName, bracket, crossGroupSeeds, scheduleRounds,
 };

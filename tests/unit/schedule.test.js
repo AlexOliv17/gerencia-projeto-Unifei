@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  roundRobinRounds, splitGroups, bracket, knockoutRoundName, scheduleRounds,
+  roundRobinRounds, splitGroups, bracket, knockoutRoundName, scheduleRounds, crossGroupSeeds,
 } = require('../../src/rules/schedule');
 const { addDaysIso } = require('../../src/validation/dates');
 
@@ -58,6 +58,18 @@ test('cruzamento dos grupos: 1º do A pega o 2º do B', () => {
   const rounds = bracket(['A1', 'B1', 'A2', 'B2']);
   assert.deepEqual(rounds[0].map((m) => [m.a, m.b]), [['A1', 'B2'], ['B1', 'A2']]);
 });
+
+for (const groups of [2, 3, 4, 5]) {
+  test(`cruzamento com ${groups} grupos: nenhum jogo da primeira fase entre equipes do mesmo grupo`, () => {
+    const names = Array.from({ length: groups }, (_, i) => String.fromCharCode(65 + i));
+    const tables = names.map((g) => ({ group: g, first: `${g}1`, second: `${g}2` }));
+    const seeds = crossGroupSeeds(tables);
+    assert.deepEqual(seeds.slice(0, groups), names.map((g) => `${g}1`), 'os primeiros colocados vêm antes');
+    for (const match of bracket(seeds)[0].filter((m) => !m.bye)) {
+      assert.notEqual(match.a[0], match.b[0], `${match.a} × ${match.b}`);
+    }
+  });
+}
 
 test('nomes das fases do mata-mata', () => {
   assert.equal(knockoutRoundName(8, 1), 'Oitavas de final');

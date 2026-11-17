@@ -1,6 +1,6 @@
 const { MESSAGES } = require('../constants');
 const {
-  roundRobinRounds, splitGroups, bracket, scheduleRounds,
+  roundRobinRounds, splitGroups, bracket, crossGroupSeeds, scheduleRounds,
 } = require('../rules/schedule');
 const { addDaysIso } = require('../validation/dates');
 const {
@@ -116,14 +116,16 @@ function knockoutStatus(db, championship, categoryId) {
   return { available: true, lastRound: Math.max(...groupGames.map((m) => m.round_number)) };
 }
 
-/** The two best of each group, crossed: A1, B1, C1…, A2, B2, C2… so the bracket pairs 1st of one group with 2nd of another. */
+/** The two best of each group, crossed so the first round never repeats a group game (crossGroupSeeds). */
 function generateKnockout(db, championship, data) {
   const status = knockoutStatus(db, championship, data.categoryId);
   if (!status.available) return { error: status.error ?? MESSAGES.knockoutNotReady };
   const tables = categoryStandings(db, championship, data.categoryId);
   const entries = approvedEntries(db, championship.id).get(data.categoryId) ?? [];
   const byId = new Map(entries.map((e) => [e.id, e]));
-  const seeds = [0, 1].flatMap((pos) => tables.map((t) => t.rows[pos]).filter(Boolean)).map((row) => byId.get(row.id));
+  const seeds = crossGroupSeeds(tables.map((t) => ({
+    group: t.group, first: byId.get(t.rows[0]?.id), second: byId.get(t.rows[1]?.id),
+  })));
   try {
     const created = db.transaction(() => placeBracket(db, championship, data, seeds, teamNames(entries), status.lastRound + 1))();
     return { created };
