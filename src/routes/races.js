@@ -80,14 +80,15 @@ router.post('/my/championships/:id/races/:categoryId/start', ...GUARDS, requireA
   const before = req.start;
   saveRaceStart(db, req.championship.id, req.category.id, data);
   const after = getRaceStart(db, req.category.id);
-  if (before?.status === 'scheduled' && (after.start_date !== before.start_date || after.start_time !== before.start_time
-    || after.venue !== before.venue)) {
+  const restored = before?.status === 'cancelled';
+  if (restored || (before && (after.start_date !== before.start_date || after.start_time !== before.start_time
+    || after.venue !== before.venue))) {
     notify(db, {
       userIds: raceAudience(db, req.championship.id, req.category.id),
       type: 'schedule_changed',
       outboxType: 'race_changed',
       exceptUserId: req.user.id,
-      title: `Largada alterada: ${req.championship.name} (${req.category.name})`,
+      title: `Largada ${restored ? 'remarcada' : 'alterada'}: ${req.championship.name} (${req.category.name})`,
       body: `A largada da categoria ${req.category.name} agora é em ${formatBrDate(after.start_date)} às ${after.start_time}, ${after.venue}.`,
       link: `/championships/${req.championship.id}/table?category_id=${req.category.id}`,
     });
