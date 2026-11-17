@@ -71,17 +71,19 @@ router.get('/my/championships/:id/report.pdf', ...GUARDS, (req, res) => {
   for (const group of groups) {
     const summary = Object.entries(group.totals).filter(([, n]) => n).map(([s, n]) => `${REGISTRATION_STATUS[s]}: ${n}`).join(' · ');
     doc.fontSize(12).font('Helvetica-Bold').text(group.name).font('Helvetica').fontSize(9).text(summary).moveDown(0.3);
+    // Long names wrap inside their column; the row is as tall as its tallest cell, and moves whole to the next page.
     const row = (cells, bold = false) => {
-      if (doc.y > doc.page.height - 60) doc.addPage();
+      doc.font(bold ? 'Helvetica-Bold' : 'Helvetica');
+      const height = Math.max(...cells.map((cell, i) => doc.heightOfString(cell || ' ', { width: columns[i][1] - 6 }))) + 4;
+      if (doc.y + height > doc.page.height - doc.page.margins.bottom) doc.addPage();
       const y = doc.y;
       let x = doc.page.margins.left;
-      doc.font(bold ? 'Helvetica-Bold' : 'Helvetica');
       cells.forEach((cell, i) => {
-        doc.text(cell, x, y, { width: columns[i][1] - 6, lineBreak: false, ellipsis: true });
+        doc.text(cell, x, y, { width: columns[i][1] - 6 });
         x += columns[i][1];
       });
       doc.x = doc.page.margins.left;
-      doc.y = y + 14;
+      doc.y = y + height;
     };
     row(columns.map(([label]) => label), true);
     for (const r of group.rows) {
