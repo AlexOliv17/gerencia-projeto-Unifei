@@ -48,11 +48,13 @@ function durationField(input, errors) {
  * ([{ id, name }]): rule 3 means only those can play. Conflicts (rules 1 and 2) need the database and are
  * checked by the caller.
  */
-function validateMatchInput(input, { championship, categoryIds, entries }) {
+function validateMatchInput(input, {
+  championship, categoryIds, entries, fixed = null,
+}) {
   const errors = {};
   const data = {};
 
-  data.categoryId = Number(input.category_id);
+  data.categoryId = fixed ? fixed.categoryId : Number(input.category_id);
   if (!categoryIds.includes(data.categoryId)) errors.category_id = MESSAGES.required;
 
   data.round = trim(input.round);
@@ -65,13 +67,17 @@ function validateMatchInput(input, { championship, categoryIds, entries }) {
   else data.kind = 'league';
 
   const approved = new Set((entries.get(data.categoryId) ?? []).map((e) => e.id));
-  for (const [field, key] of [['registration_a_id', 'registrationAId'], ['registration_b_id', 'registrationBId']]) {
+  // A bracket game fed by earlier games gets its teams from them (RFS11 rule 2): category and teams stay as stored.
+  for (const [field, key] of fixed ? [] : [['registration_a_id', 'registrationAId'], ['registration_b_id', 'registrationBId']]) {
     const raw = trim(input[field]);
     data[key] = Number(raw);
     if (!raw) errors[field] = MESSAGES.required;
     else if (!errors.category_id && !approved.has(data[key])) errors[field] = MESSAGES.matchTeamNotApproved;
   }
-  if (!errors.registration_a_id && !errors.registration_b_id && data.registrationAId === data.registrationBId) {
+  if (fixed) {
+    data.registrationAId = fixed.registrationAId;
+    data.registrationBId = fixed.registrationBId;
+  } else if (!errors.registration_a_id && !errors.registration_b_id && data.registrationAId === data.registrationBId) {
     errors.registration_b_id = MESSAGES.matchSameTeams;
   }
 

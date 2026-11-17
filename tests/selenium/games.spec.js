@@ -18,6 +18,7 @@ describe('RFS09 - Manter Tabela de Jogos', function () {
   let roxoEntry;
   let rescheduleId;
   let cancelId;
+  let rainFinal;
 
   before(async function () {
     server = await startTestServer();
@@ -37,6 +38,12 @@ describe('RFS09 - Manter Tabela de Jogos', function () {
     for (const name of ['Leoas da Serra', 'Time Azul', 'Time Verde', 'Time Roxo']) f.register('Copa Pontos Corridos', name);
     f.championship('Copa Chave', { format: 'knockout' });
     for (const name of ['Leoas da Serra', 'Time Azul', 'Time Verde']) f.register('Copa Chave', name);
+    f.championship('Copa Chuva', { format: 'knockout' });
+    const [cLeoas, cAzul, cVerde, cRoxo] = ['Leoas da Serra', 'Time Azul', 'Time Verde', 'Time Roxo']
+      .map((t) => f.register('Copa Chuva', t));
+    rainFinal = f.game('Copa Chuva', null, null, { day: 20, round: 'Final', kind: 'knockout' });
+    f.game('Copa Chuva', cLeoas, cRoxo, { day: 13, time: '08:00', round: 'Semifinal', kind: 'knockout', next: rainFinal, slot: 'a' });
+    f.game('Copa Chuva', cAzul, cVerde, { day: 13, time: '10:00', round: 'Semifinal', kind: 'knockout', next: rainFinal, slot: 'b' });
     f.championship('Copa Encerrada');
     server.db.prepare("UPDATE championships SET status = 'finished' WHERE name = 'Copa Encerrada'").run();
     // Another championship where Time Roxo already plays at 20:00 in 12 days (rule 1 crosses championships).
@@ -171,6 +178,33 @@ describe('RFS09 - Manter Tabela de Jogos', function () {
     assert.deepEqual(await rows(), ['Semifinal', 'Final']);
     assert.deepEqual(await texts(driver, 'tr[data-testid="match-row"] .team-a'), ['Time Azul', 'Leoas da Serra']);
     assert.deepEqual(await texts(driver, 'tr[data-testid="match-row"] .team-b'), ['Time Verde', 'A definir']);
+  });
+
+  it('reagenda a final do chaveamento ainda "A definir"; as equipes vêm dos jogos anteriores (BUG-R3-01)', async function () {
+    await login(driver, server.baseUrl, ORGANIZER, 'Senha@123');
+    await visit(driver, server.baseUrl, tablePath('Copa Chuva'));
+    await click(driver, `#edit-match-${rainFinal}`);
+    assert.equal(await exists(driver, '#registration_a_id'), false);
+    assert.equal(await text(driver, '#locked-teams'), 'A definir x A definir (definidas pelo chaveamento)');
+    await fill(driver, { match_date: formatBrDate(f.inDays(25)), start_time: '16:00' });
+    await submit(driver);
+    assert.equal(await flash(driver), MESSAGES.matchSaved);
+    assert.equal(await text(driver, `#match-${rainFinal} .date`), formatBrDate(f.inDays(25)));
+    assert.equal(await text(driver, `#match-${rainFinal} .team-a`), 'A definir');
+  });
+
+  it('POST forjado não troca as equipes de um jogo do chaveamento (BUG-R3-01)', async function () {
+    await login(driver, server.baseUrl, ORGANIZER, 'Senha@123');
+    await visit(driver, server.baseUrl, tablePath('Copa Chuva'));
+    const azul = server.db.prepare(`SELECT r.id FROM registrations r JOIN teams t ON t.id = r.team_id
+      WHERE r.championship_id = ? AND t.name = 'Time Azul'`).get(f.champId('Copa Chuva')).id;
+    await forgePost(driver, `/games/${rainFinal}/edit`, {
+      category_id: f.categoryId('Copa Chuva', 'Única'), round: 'Final', registration_a_id: azul, registration_b_id: '',
+      match_date: formatBrDate(f.inDays(25)), start_time: '16:00', venue: 'Ginásio Teste',
+    });
+    assert.equal(await flash(driver), MESSAGES.matchSaved);
+    const final = server.db.prepare('SELECT registration_a_id, registration_b_id FROM matches WHERE id = ?').get(rainFinal);
+    assert.deepEqual({ ...final }, { registration_a_id: null, registration_b_id: null });
   });
 
   it('não muda o formato do campeonato depois de haver jogos (BUG-R3-02)', async function () {

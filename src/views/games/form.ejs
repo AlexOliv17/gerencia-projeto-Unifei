@@ -2,6 +2,9 @@
 <h1><%= title %> — <%= championship.name %></h1>
 <div class="card">
   <form id="match-form" class="stacked" method="post" action="<%= match ? `/games/${match.id}/edit` : `/my/championships/${championship.id}/games/new` %>" novalidate>
+    <% if (teamsLocked) { %>
+      <p class="hint">Categoria <strong><%= match.category_name %></strong>. Equipes: <strong id="locked-teams"><%= match.nameA %> x <%= match.nameB %> (definidas pelo chaveamento)</strong></p>
+    <% } else { %>
     <div class="field">
       <label for="category_id">Categoria *</label>
       <select id="category_id" name="category_id">
@@ -12,6 +15,7 @@
       </select>
       <%- include('../partials/error', { field: 'category_id' }) %>
     </div>
+    <% } %>
     <div class="field">
       <label for="round">Fase/Rodada * <span class="hint">(ex.: Rodada 1, Semifinal)</span></label>
       <input type="text" id="round" name="round" value="<%= values.round || '' %>">
@@ -24,7 +28,7 @@
         <%- include('../partials/error', { field: 'group_name' }) %>
       </div>
     <% } %>
-    <% [['registration_a_id', 'Equipe A'], ['registration_b_id', 'Equipe B']].forEach(([field, label]) => { %>
+    <% (teamsLocked ? [] : [['registration_a_id', 'Equipe A'], ['registration_b_id', 'Equipe B']]).forEach(([field, label]) => { %>
       <div class="field">
         <label for="<%= field %>"><%= label %> * <span class="hint">(somente inscrições aprovadas)</span></label>
         <select id="<%= field %>" name="<%= field %>">

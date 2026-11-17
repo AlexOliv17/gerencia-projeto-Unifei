@@ -4,7 +4,7 @@ const { requireActiveOrganizer } = require('../middleware/auth');
 const { setFlash, render403, render404 } = require('../middleware/session');
 const { getChampionship, categoriesWithIds } = require('../models/championships');
 const {
-  getMatch, listMatches, approvedEntries, findConflict, insertMatch, updateMatch, cancelMatch,
+  getMatch, listMatches, approvedEntries, findConflict, insertMatch, updateMatch, cancelMatch, isFedByBracket,
 } = require('../models/matches');
 const {
   generateTable, generateKnockout, knockoutStatus, conflictMessage,
@@ -82,6 +82,7 @@ function renderMatchForm(req, res, { values, errors = {}, match = null }) {
     match,
     categories: req.categories,
     entries: approvedEntries(req.app.locals.db, championship.id),
+    teamsLocked: Boolean(match && isFedByBracket(req.app.locals.db, match.id)),
     values,
     errors,
     back: tablePath(championship.id, values.category_id),
@@ -102,20 +103,23 @@ function checkMatch(req, match = null) {
     }
     entries.set(match.category_id, list);
   }
+  const fixed = match && isFedByBracket(db, match.id)
+    ? { categoryId: match.category_id, registrationAId: match.registration_a_id, registrationBId: match.registration_b_id }
+    : null;
   const { errors, data } = validateMatchInput(req.body, {
-    championship, categoryIds: req.categories.map((c) => c.id), entries,
+    championship, categoryIds: req.categories.map((c) => c.id), entries, fixed,
   });
   if (match?.hasResult && (data.categoryId !== match.category_id || data.registrationAId !== match.registration_a_id
     || data.registrationBId !== match.registration_b_id)) {
     errors.registration_a_id = MESSAGES.matchTeamsLocked;
   }
   if (Object.keys(errors).length) return { errors, data };
-  const list = entries.get(data.categoryId);
+  const list = entries.get(data.categoryId) ?? [];
   const entryA = list.find((e) => e.id === data.registrationAId);
   const entryB = list.find((e) => e.id === data.registrationBId);
   const conflict = findConflict(db, {
     championshipId: championship.id, date: data.date, startTime: data.startTime, duration: data.duration, venue: data.venue,
-    teamIds: [entryA.teamId, entryB.teamId], ignoreId: match?.id ?? 0,
+    teamIds: [entryA?.teamId, entryB?.teamId], ignoreId: match?.id ?? 0,
     names: new Map(list.filter((e) => e.teamId).map((e) => [e.teamId, e.name])),
   });
   if (conflict) errors[conflict.field === 'team' ? 'start_time' : 'venue'] = conflictMessage(conflict);
