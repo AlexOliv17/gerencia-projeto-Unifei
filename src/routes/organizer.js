@@ -3,7 +3,8 @@ const { MESSAGES } = require('../constants');
 const { requireActiveOrganizer, requireRole } = require('../middleware/auth');
 const { setFlash, render403, render404 } = require('../middleware/session');
 const { listCities } = require('../models/cities');
-const { addOutbox } = require('../models/outbox');
+const { notify } = require('../models/notifications');
+const { championshipAudience } = require('../models/audience');
 const {
   createChampionship, getChampionship, searchChampionships, updateChampionship, finishChampionship,
   cancelChampionship, canManage, categoriesInUse,
@@ -120,10 +121,13 @@ router.post('/my/championships/:id/edit', requireRole('organizer'), loadManageab
   const { changedSchedule } = updateChampionship(db, req.championship.id, data);
   if (changedSchedule) {
     const city = cities.find((c) => c.id === data.cityId).name;
-    addOutbox(db, {
-      type: 'championship_changed',
-      recipient: 'inscritos e seguidores',
-      subject: `Alteração no campeonato ${data.name}`,
+    notify(db, {
+      userIds: championshipAudience(db, req.championship.id),
+      type: 'schedule_changed',
+      outboxType: 'championship_changed',
+      exceptUserId: req.user.id,
+      link: `/championships/${req.championship.id}`,
+      title: `Alteração no campeonato ${data.name}`,
       body: `O campeonato ${data.name} foi alterado: de ${formatBrDate(data.startDate)} a ${formatBrDate(data.endDate)}, `
         + `inscrições até ${formatBrDate(data.registrationDeadline)}, local ${data.venue} (${city}).`,
     });
@@ -158,10 +162,13 @@ router.post('/championships/:id/cancel', requireRole('organizer', 'admin'), load
   }
   const { db } = req.app.locals;
   cancelChampionship(db, req.championship.id, reason);
-  addOutbox(db, {
-    type: 'championship_cancelled',
-    recipient: 'inscritos e seguidores',
-    subject: `Campeonato ${req.championship.name} cancelado`,
+  notify(db, {
+    userIds: championshipAudience(db, req.championship.id),
+    type: 'cancellation',
+    outboxType: 'championship_cancelled',
+    exceptUserId: req.user.id,
+    link: `/championships/${req.championship.id}`,
+    title: `Campeonato ${req.championship.name} cancelado`,
     body: `O campeonato ${req.championship.name} foi cancelado. Motivo: ${reason}`,
   });
   setFlash(req, 'success', MESSAGES.champCancelled);

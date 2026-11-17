@@ -6,6 +6,7 @@ const constants = require('./constants');
 const { formatBrDate, formatBrDateTime } = require('./validation/dates');
 const { formatFinishTime } = require('./validation/games');
 const { flash, loadUser, render404 } = require('./middleware/session');
+const { unreadCount } = require('./models/notifications');
 
 function createApp({ db }) {
   const app = express();
@@ -28,6 +29,11 @@ function createApp({ db }) {
   }));
   app.use(flash);
   app.use(loadUser);
+  // "Avisos (N)" in the menu of the people who receive notices.
+  app.use((req, res, next) => {
+    res.locals.unreadCount = req.user && ['user', 'organizer'].includes(req.user.role) ? unreadCount(db, req.user.id) : 0;
+    next();
+  });
 
   app.get('/', (req, res) => res.redirect('/championships'));
   app.use(require('./routes/auth'));
@@ -39,6 +45,8 @@ function createApp({ db }) {
   app.use(require('./routes/games'));
   app.use(require('./routes/races'));
   app.use(require('./routes/report'));
+  app.use(require('./routes/follows'));
+  app.use(require('./routes/notifications'));
   app.use(require('./routes/championships'));
 
   app.use((req, res) => render404(res));

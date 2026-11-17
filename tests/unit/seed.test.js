@@ -39,6 +39,17 @@ test('seed traz a Liga de Vôlei com jogos e resultados, e as largadas da corrid
   assert.deepEqual(starts, ['07:00', '07:30']);
 });
 
+test('seed traz quem segue o quê e avisos de exemplo', (t) => {
+  const db = seededDb(t);
+  const follows = db.prepare(`SELECT u.email, c.name AS championship, tm.name AS team FROM follows f JOIN users u ON u.id = f.user_id
+    LEFT JOIN championships c ON c.id = f.championship_id LEFT JOIN teams tm ON tm.id = f.team_id ORDER BY f.id`).all();
+  assert.deepEqual(follows.map((r) => [r.email, r.championship ?? r.team]), [
+    ['usuario@arenalocal.com', 'Liga de Vôlei Santa Rita'], ['usuario@arenalocal.com', 'Leoas da Serra'],
+    ['capita@arenalocal.com', 'Copa Itajubá de Futsal'],
+  ]);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM notifications WHERE read_at IS NULL').get().n, 1);
+});
+
 test('excluir a conta apaga as equipes e cancela as inscrições abertas, mesmo aprovadas', (t) => {
   const { anonymizeUser } = require('../../src/models/users');
   const db = seededDb(t);

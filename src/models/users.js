@@ -96,6 +96,9 @@ function anonymizeUser(db, id, now = new Date()) {
     db.prepare("DELETE FROM outbox WHERE type = 'password_reset' AND recipient = ?").run(email);
     db.prepare('DELETE FROM password_resets WHERE user_id = ?').run(id);
     closeAccountTeams(db, id);
+    for (const table of ['follows', 'notifications', 'notification_preferences']) {
+      db.prepare(`DELETE FROM ${table} WHERE user_id = ?`).run(id);
+    }
     db.prepare(`UPDATE users SET name = 'Usuário removido', email = ?, password_hash = '', document = NULL,
       league_name = NULL, status = 'suspended', failed_login_attempts = 0, locked_until = NULL,
       deleted_at = ?, updated_at = ? WHERE id = ?`)

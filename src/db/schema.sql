@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS championship_categories (
 
 CREATE TABLE IF NOT EXISTS outbox (
   id INTEGER PRIMARY KEY,
-  type TEXT NOT NULL CHECK (type IN ('password_reset', 'championship_changed', 'championship_cancelled', 'registration_result')),
+  type TEXT NOT NULL CHECK (type IN ('password_reset', 'championship_changed', 'championship_cancelled', 'registration_result',
+    'match_upcoming', 'registration_closing', 'match_changed', 'match_cancelled', 'race_changed', 'race_cancelled')),
   recipient TEXT NOT NULL,
   subject TEXT NOT NULL,
   body TEXT NOT NULL,
@@ -156,4 +157,37 @@ CREATE TABLE IF NOT EXISTS result_history (
   description TEXT NOT NULL,
   changed_by INTEGER NOT NULL REFERENCES users(id),
   changed_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS follows (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  championship_id INTEGER REFERENCES championships(id),
+  team_id INTEGER REFERENCES teams(id),
+  created_at TEXT NOT NULL,
+  CHECK ((championship_id IS NULL) <> (team_id IS NULL))
+);
+
+-- NULLs never collide in a plain UNIQUE, so each kind of follow gets its own partial index.
+CREATE UNIQUE INDEX IF NOT EXISTS follows_championship ON follows (user_id, championship_id) WHERE championship_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS follows_team ON follows (user_id, team_id) WHERE team_id IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  link TEXT,
+  dedupe_key TEXT,
+  read_at TEXT,
+  created_at TEXT NOT NULL,
+  UNIQUE (user_id, dedupe_key)
+);
+
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  type TEXT NOT NULL,
+  enabled INTEGER NOT NULL,
+  PRIMARY KEY (user_id, type)
 );

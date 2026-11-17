@@ -96,6 +96,26 @@ const MATCHES = [
   { round: 3, day: 4, a: 'Garças do Sapucaí', b: 'Estrelas do Vale' },
 ];
 
+// RFS17/RFS18 demo: what João and Maria follow, and Maria's notices about her registrations.
+const FOLLOWS = [
+  { user: 'usuario@arenalocal.com', championship: 'Liga de Vôlei Santa Rita' },
+  { user: 'usuario@arenalocal.com', team: 'Leoas da Serra' },
+  { user: 'capita@arenalocal.com', championship: 'Copa Itajubá de Futsal' },
+];
+
+const NOTICES = [
+  {
+    user: 'capita@arenalocal.com', type: 'registration_result', championship: 'Copa Itajubá de Futsal', read: true,
+    title: 'Inscrição aprovada — Copa Itajubá de Futsal',
+    body: 'A inscrição de Leoas da Serra na categoria Adulto do campeonato Copa Itajubá de Futsal foi aprovada.',
+  },
+  {
+    user: 'capita@arenalocal.com', type: 'registration_result', championship: 'Liga de Vôlei Santa Rita', read: false,
+    title: 'Inscrição recusada — Liga de Vôlei Santa Rita',
+    body: 'A inscrição de Vôlei Sapucaí na categoria Feminino do campeonato Liga de Vôlei Santa Rita foi recusada. Motivo: Equipe incompleta',
+  },
+];
+
 const RACE_STARTS = [
   { category: '5 km', time: '07:00' },
   { category: '10 km', time: '07:30' },
@@ -107,7 +127,7 @@ function seed(db) {
   const today = todayIso();
 
   db.transaction(() => {
-    for (const table of ['result_history', 'race_results', 'race_starts', 'matches', 'registrations', 'team_athletes', 'teams', 'outbox', 'championship_categories', 'championships',
+    for (const table of ['notification_preferences', 'notifications', 'follows', 'result_history', 'race_results', 'race_starts', 'matches', 'registrations', 'team_athletes', 'teams', 'outbox', 'championship_categories', 'championships',
       'password_resets', 'users', 'cities']) {
       db.prepare(`DELETE FROM ${table}`).run();
     }
@@ -183,6 +203,19 @@ function seed(db) {
         insertHistory.run(liga.championshipId, matchId, `Resultado registrado: ${m.a} ${m.score[0]} x ${m.score[1]} ${m.b}`,
           organizerId, now);
       }
+    }
+
+    const insertFollow = db.prepare('INSERT INTO follows (user_id, championship_id, team_id, created_at) VALUES (?, ?, ?, ?)');
+    const championshipId = (name) => db.prepare('SELECT id FROM championships WHERE name = ?').get(name).id;
+    for (const fw of FOLLOWS) {
+      insertFollow.run(userIds[fw.user], fw.championship ? championshipId(fw.championship) : null,
+        fw.team ? teamIds[fw.team] : null, now);
+    }
+    const insertNotice = db.prepare(`INSERT INTO notifications (user_id, type, title, body, link, read_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`);
+    for (const n of NOTICES) {
+      insertNotice.run(userIds[n.user], n.type, n.title, n.body, `/championships/${championshipId(n.championship)}`,
+        n.read ? now : null, now);
     }
 
     const corrida = CHAMPIONSHIPS.find((c) => c.sport === 'street_run');

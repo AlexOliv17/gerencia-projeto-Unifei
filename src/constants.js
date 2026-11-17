@@ -60,6 +60,15 @@ const RACE_STATUS = {
   cancelled: 'Cancelada',
 };
 
+/** RFS18 / Tabela 09: kinds of notice a person can switch off. */
+const NOTIFICATION_TYPES = {
+  match_upcoming: 'Jogo ou prova próximo',
+  registration_closing: 'Encerramento de inscrições',
+  schedule_changed: 'Alteração de data, horário ou local',
+  registration_result: 'Resultado da inscrição',
+  cancellation: 'Cancelamento de campeonato, jogo ou largada',
+};
+
 const DEFAULT_POINTS = { win: 3, draw: 1, loss: 0 };
 const DEFAULT_MATCH_MINUTES = 60;
 const MAX_GROUP_SIZE = 4;
@@ -177,10 +186,15 @@ const MESSAGES = {
   finishTimeInvalid: 'Tempo inválido. Use HH:MM:SS.',
   raceTimesSaved: (n) => (n === 1 ? '1 tempo registrado.' : `${n} tempos registrados.`),
   raceNoChanges: 'Nenhum tempo foi alterado.',
+  followedChampionship: 'Você está seguindo este campeonato.',
+  followedTeam: (name) => `Você está seguindo a equipe ${name}.`,
+  unfollowed: 'Você deixou de seguir.',
+  followCancelled: 'Campeonato cancelado não pode ser seguido.',
+  preferencesSaved: 'Preferências salvas.',
 };
 
 module.exports = {
   SPORTS, FORMATS, ROLES, USER_STATUS, CHAMPIONSHIP_DISPLAY_STATUS, TEAM_SPORTS, REGISTRATION_STATUS,
-  OPEN_REGISTRATION_STATUSES, MAX_ATHLETES, MATCH_STATUS, RACE_STATUS, DEFAULT_POINTS, DEFAULT_MATCH_MINUTES,
+  OPEN_REGISTRATION_STATUSES, MAX_ATHLETES, MATCH_STATUS, RACE_STATUS, NOTIFICATION_TYPES, DEFAULT_POINTS, DEFAULT_MATCH_MINUTES,
   MAX_GROUP_SIZE, LOCKOUT, RESET_TOKEN_TTL_MINUTES, MESSAGES,
 };

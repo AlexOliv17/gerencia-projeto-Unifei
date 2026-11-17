@@ -2,7 +2,7 @@ const express = require('express');
 const { MESSAGES, OPEN_REGISTRATION_STATUSES, REGISTRATION_STATUS } = require('../constants');
 const { requireRole } = require('../middleware/auth');
 const { setFlash, render403, render404 } = require('../middleware/session');
-const { addOutbox } = require('../models/outbox');
+const { notify } = require('../models/notifications');
 const { getChampionship, categoriesWithIds } = require('../models/championships');
 const { getTeam, listTeamsForSport } = require('../models/teams');
 const {
@@ -180,13 +180,13 @@ function loadDecision(action) {
   };
 }
 
-/** RFS18 "Resultado da inscrição": simulated e-mail to whoever made the request. */
+/** RFS18 "Resultado da inscrição": notice (and simulated e-mail) to whoever made the request. */
 function notifyResult(db, registration, championship, approved, reason = null) {
   const verdict = approved ? 'aprovada' : 'recusada';
-  addOutbox(db, {
+  notify(db, {
+    userIds: [registration.user_id],
     type: 'registration_result',
-    recipient: registration.user_email,
-    subject: `Inscrição ${verdict} — ${championship.name}`,
+    title: `Inscrição ${verdict} — ${championship.name}`,
     body: `A inscrição de ${registration.entryName} na categoria ${registration.category_name} do campeonato `
       + `${championship.name} foi ${verdict}.${reason ? ` Motivo: ${reason}` : ''}`,
     link: `/championships/${championship.id}`,

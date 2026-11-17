@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+<h1>Acompanhando</h1>
+
+<h2>Campeonatos</h2>
+<% if (championships.length === 0) { %>
+  <p id="no-followed-championships">Você ainda não segue nenhum campeonato. Use o botão "Seguir" na página do campeonato.</p>
+<% } %>
+<% championships.forEach((c) => { %>
+  <section id="followed-championship-<%= c.id %>" data-testid="followed-championship" class="card">
+    <div class="page-head">
+      <h3 class="name"><a href="/championships/<%= c.id %>"><%= c.name %></a></h3>
+      <span class="badge status"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[c.displayStatus] %></span>
+    </div>
+    <p class="hint"><%= labels.SPORTS[c.sport] %> · <%= c.city_name %> · <%= formatBrDate(c.start_date) %> a <%= formatBrDate(c.end_date) %></p>
+    <% if (c.next.length) { %>
+      <ul class="next">
+        <% c.next.forEach((n) => { %><li data-testid="next-event"><%= formatBrDate(n.date) %> às <%= n.time %> — <%= n.label %> (<%= n.venue %>)</li><% }) %>
+      </ul>
+    <% } else { %>
+      <p class="hint">Nenhum jogo agendado.</p>
+    <% } %>
+    <div class="actions">
+      <a class="button small secondary" href="/championships/<%= c.id %>/table">Tabela e classificação</a>
+      <form method="post" action="/championships/<%= c.id %>/unfollow">
+        <input type="hidden" name="back" value="/my/following">
+        <button type="submit" id="unfollow-championship-<%= c.id %>" class="small danger">Deixar de seguir</button>
+      </form>
+    </div>
+  </section>
+<% }) %>
+
+<h2>Equipes</h2>
+<% if (teams.length === 0) { %>
+  <p id="no-followed-teams">Você ainda não segue nenhuma equipe. Use o botão "Seguir" nas equipes inscritas de um campeonato.</p>
+<% } %>
+<% teams.forEach((t) => { %>
+  <section id="followed-team-<%= t.id %>" data-testid="followed-team" class="card">
+    <h3 class="name"><%= t.name %></h3>
+    <p class="hint"><%= labels.SPORTS[t.sport] %> · <%= t.city_name %></p>
+    <p><strong>Próximos jogos</strong></p>
+    <% if (t.upcoming.length) { %>
+      <ul class="upcoming">
+        <% t.upcoming.forEach((m) => { %><li data-testid="team-upcoming"><%= formatBrDate(m.match_date) %> às <%= m.start_time %> — <%= m.nameA %> x <%= m.nameB %> (<%= m.championship_name %>)</li><% }) %>
+      </ul>
+    <% } else { %><p class="hint">Nenhum jogo agendado.</p><% } %>
+    <p><strong>Últimos resultados</strong></p>
+    <% if (t.results.length) { %>
+      <ul class="results">
+        <% t.results.forEach((m) => { %><li data-testid="team-result"><%= formatBrDate(m.match_date) %> — <%= m.nameA %> <%= m.score_a %> x <%= m.score_b %> <%= m.nameB %> (<%= m.championship_name %>)</li><% }) %>
+      </ul>
+    <% } else { %><p class="hint">Nenhum resultado ainda.</p><% } %>
+    <form method="post" action="/teams/<%= t.id %>/unfollow">
+      <input type="hidden" name="back" value="/my/following">
+      <button type="submit" id="unfollow-team-<%= t.id %>" class="small danger">Deixar de seguir</button>
+    </form>
+  </section>
+<% }) %>
+<%- include('../partials/footer') %>
