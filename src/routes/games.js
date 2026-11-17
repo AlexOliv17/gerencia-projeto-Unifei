@@ -10,6 +10,8 @@ const {
   generateTable, generateKnockout, knockoutStatus, conflictMessage,
 } = require('../models/tableGenerator');
 const { recordResult, listHistory } = require('../models/results');
+const { notify } = require('../models/notifications');
+const { matchAudience } = require('../models/audience');
 const { validateMatchInput, validateGenerateInput, validateResultInput } = require('../validation/games');
 const { formatBrDate, todayIso } = require('../validation/dates');
 
@@ -168,7 +170,23 @@ router.post('/games/:id/edit', requireActiveOrganizer, loadMatch, requireActive,
     res.status(422);
     return renderMatchForm(req, res, { values: req.body, errors, match: req.match });
   }
-  updateMatch(req.app.locals.db, req.match.id, data);
+  const { db } = req.app.locals;
+  const before = req.match;
+  updateMatch(db, before.id, data);
+  const after = getMatch(db, before.id);
+  // RFS18 "Alteração de data, horário ou local": only when one of them changed.
+  if (after.match_date !== before.match_date || after.start_time !== before.start_time || after.venue !== before.venue) {
+    notify(db, {
+      userIds: matchAudience(db, after),
+      type: 'schedule_changed',
+      outboxType: 'match_changed',
+      exceptUserId: req.user.id,
+      title: `Jogo reagendado: ${after.nameA} x ${after.nameB}`,
+      body: `${after.championship_name}, ${after.round}: agora em ${formatBrDate(after.match_date)} às ${after.start_time}, `
+        + `${after.venue} (antes ${formatBrDate(before.match_date)} às ${before.start_time}, ${before.venue}).`,
+      link: `/championships/${after.championship_id}/table?category_id=${after.category_id}`,
+    });
+  }
   setFlash(req, 'success', MESSAGES.matchSaved);
   return res.redirect(tablePath(req.championship.id, data.categoryId));
 });
@@ -188,7 +206,18 @@ router.get('/games/:id/cancel', requireActiveOrganizer, loadMatch, requireActive
 });
 
 router.post('/games/:id/cancel', requireActiveOrganizer, loadMatch, requireActive, requireScheduled, requireNoResult, (req, res) => {
-  cancelMatch(req.app.locals.db, req.match.id);
+  const { db } = req.app.locals;
+  const { match } = req;
+  cancelMatch(db, match.id);
+  notify(db, {
+    userIds: matchAudience(db, match),
+    type: 'cancellation',
+    outboxType: 'match_cancelled',
+    exceptUserId: req.user.id,
+    title: `Jogo cancelado: ${match.nameA} x ${match.nameB}`,
+    body: `${match.championship_name}, ${match.round}: o jogo de ${formatBrDate(match.match_date)} às ${match.start_time} foi cancelado.`,
+    link: `/championships/${match.championship_id}/table?category_id=${match.category_id}`,
+  });
   setFlash(req, 'success', MESSAGES.matchCancelled);
   res.redirect(tablePath(req.championship.id, req.match.category_id));
 });

@@ -73,6 +73,8 @@ function deleteTeam(db, id) {
       WHERE team_id = ? AND status IN (${OPEN})
         AND championship_id IN (SELECT id FROM championships WHERE status = 'active')`).run(now, id);
     db.prepare('DELETE FROM team_athletes WHERE team_id = ?').run(id);
+    // RFS17: a deleted team leaves the lists (and the notices) of whoever followed it.
+    db.prepare('DELETE FROM follows WHERE team_id = ?').run(id);
     db.prepare('UPDATE teams SET deleted_at = ?, updated_at = ? WHERE id = ?').run(now, now, id);
   })();
 }

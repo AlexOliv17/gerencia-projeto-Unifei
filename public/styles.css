@@ -186,3 +186,8 @@ legend { font-weight: 600; padding: 0 4px; }
 tr.muted td { color: var(--muted); }
 .standings td.num, .standings th.num { text-align: right; }
 .history { padding-left: 18px; }
+form.inline { display: inline; margin-left: 8px; }
+.page-head form { margin: 0; }
+.notifications { list-style: none; padding: 0; }
+.notifications li.unread { border-left: 4px solid var(--primary); }
+.notifications p { margin: 4px 0; }

@@ -7,6 +7,7 @@ const { listMatches, lastResultUpdate } = require('../models/matches');
 const { categoryStandings } = require('../models/standings');
 const { getRaceStart, listRunners } = require('../models/races');
 const { raceRanking } = require('../rules/standings');
+const { followedIds } = require('../models/follows');
 const { parseSearchFilters } = require('../validation/championships');
 
 const router = express.Router();
@@ -35,10 +36,13 @@ router.get('/championships/:id', (req, res) => {
   const { user } = req;
   const canRegister = Boolean(user) && ['user', 'organizer'].includes(user.role)
     && championship.displayStatus === 'open' && championship.organizer_id !== user.id;
+  const canFollow = Boolean(user) && ['user', 'organizer'].includes(user.role);
   return res.render('championships/show', {
     title: championship.name,
     championship,
     canRegister,
+    canFollow,
+    followed: followedIds(req.app.locals.db, user?.id),
     approved: approvedEntriesByCategory(req.app.locals.db, championship.id),
   });
 });

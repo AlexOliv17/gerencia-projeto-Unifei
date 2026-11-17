@@ -93,7 +93,8 @@ function approvedEntriesByCategory(db, championshipId) {
   const approved = db.prepare(`${SELECT} WHERE r.championship_id = ? AND r.status = 'approved' ORDER BY r.decided_at, r.id`)
     .all(championshipId).map(decorate);
   return categories.map((c) => {
-    const entries = approved.filter((r) => r.category_id === c.id).map((r) => r.entryName);
+    const entries = approved.filter((r) => r.category_id === c.id)
+      .map((r) => ({ name: r.entryName, teamId: r.team_id && !r.team_deleted_at ? r.team_id : null }));
     return { id: c.id, category: c.name, approved: entries.length, entries };
   });
 }

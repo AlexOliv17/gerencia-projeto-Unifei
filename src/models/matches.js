@@ -1,12 +1,13 @@
 const { entryName } = require('./registrations');
 const { formatBrDate, formatTime } = require('../validation/dates');
 
-const SELECT = `SELECT m.*, cc.name AS category_name,
+const SELECT = `SELECT m.*, cc.name AS category_name, c.name AS championship_name,
     ta.name AS team_a_name, ta.deleted_at AS team_a_deleted_at, ua.name AS user_a_name, ra.team_id AS team_a_id,
     tb.name AS team_b_name, tb.deleted_at AS team_b_deleted_at, ub.name AS user_b_name, rb.team_id AS team_b_id,
     editor.name AS result_updated_by_name
   FROM matches m
   JOIN championship_categories cc ON cc.id = m.category_id
+  JOIN championships c ON c.id = m.championship_id
   LEFT JOIN registrations ra ON ra.id = m.registration_a_id
   LEFT JOIN teams ta ON ta.id = ra.team_id
   LEFT JOIN users ua ON ua.id = ra.user_id
@@ -48,6 +49,12 @@ function listMatches(db, championshipId, { categoryId } = {}) {
   if (categoryId) { where.push('m.category_id = :categoryId'); params.categoryId = categoryId; }
   return db.prepare(`${SELECT} WHERE ${where.join(' AND ')}
     ORDER BY m.round_number, m.group_name, m.match_date, m.start_time, m.id`).all(params).map(decorate);
+}
+
+/** Every game a team plays, in any championship (not cancelled), by date: RFS17 personal area. */
+function teamMatches(db, teamId) {
+  return db.prepare(`${SELECT} WHERE m.status = 'scheduled' AND (ra.team_id = :team OR rb.team_id = :team)
+    ORDER BY m.match_date, m.start_time`).all({ team: teamId }).map(decorate);
 }
 
 /** Approved entries of each category of the championship (RFS09 rule 3), by name. */
@@ -144,6 +151,6 @@ function lastResultUpdate(db, championshipId, categoryId = null) {
 }
 
 module.exports = {
-  getMatch, listMatches, approvedEntries, findConflict, insertMatch, updateMatch, cancelMatch, activeMatchCount,
+  getMatch, listMatches, teamMatches, approvedEntries, findConflict, insertMatch, updateMatch, cancelMatch, activeMatchCount,
   lastResultUpdate, hasResult, overlaps, championshipHasGames, isFedByBracket,
 };

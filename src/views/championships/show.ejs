@@ -3,6 +3,15 @@
   <h1 id="championship-name"><%= championship.name %></h1>
   <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
   <a id="table-link" class="button secondary" href="/championships/<%= championship.id %>/table">Tabela e classificação</a>
+  <% if (canFollow && followed.championships.has(championship.id)) { %>
+    <form method="post" action="/championships/<%= championship.id %>/unfollow">
+      <button type="submit" id="unfollow-championship" class="secondary">Deixar de seguir</button>
+    </form>
+  <% } else if (canFollow && championship.status !== 'cancelled') { %>
+    <form method="post" action="/championships/<%= championship.id %>/follow">
+      <button type="submit" id="follow-championship">Seguir</button>
+    </form>
+  <% } %>
   <% if (canRegister) { %>
     <a id="register-button" class="button" href="/championships/<%= championship.id %>/register">Inscrever</a>
   <% } %>
@@ -53,7 +62,16 @@
         <p class="hint">Nenhuma inscrição aprovada ainda.</p>
       <% } else { %>
         <ul>
-          <% c.entries.forEach((name) => { %><li data-testid="approved-entry"><%= name %></li><% }) %>
+          <% c.entries.forEach((e) => { %>
+            <li data-testid="approved-entry"><span class="entry-name"><%= e.name %></span>
+              <% if (canFollow && e.teamId) { const on = followed.teams.has(e.teamId); %>
+                <form class="inline" method="post" action="/teams/<%= e.teamId %>/<%= on ? 'unfollow' : 'follow' %>">
+                  <input type="hidden" name="back" value="/championships/<%= championship.id %>">
+                  <button type="submit" id="<%= on ? 'unfollow' : 'follow' %>-team-<%= e.teamId %>" class="small secondary"><%= on ? 'Deixar de seguir' : 'Seguir' %></button>
+                </form>
+              <% } %>
+            </li>
+          <% }) %>
         </ul>
       <% } %>
     </div>

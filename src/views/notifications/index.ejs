@@ -1,0 +1,20 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Meus avisos</h1>
+  <a id="notification-preferences" class="button secondary" href="/my/notifications/preferences">Preferências</a>
+</div>
+<% if (notifications.length === 0) { %>
+  <p id="no-notifications">Nenhum aviso por enquanto. Siga campeonatos e equipes para ser avisado de jogos e mudanças.</p>
+<% } else { %>
+  <ul class="notifications">
+    <% notifications.forEach((n) => { %>
+      <li id="notification-<%= n.id %>" data-testid="notification" class="card <%= n.read_at ? '' : 'unread' %>">
+        <p class="meta hint"><span class="when"><%= formatBrDateTime(n.created_at) %></span> · <span class="type"><%= labels.NOTIFICATION_TYPES[n.type] %></span><% if (!n.read_at) { %> · <strong class="new">Novo</strong><% } %></p>
+        <p class="title"><strong><%= n.title %></strong></p>
+        <p class="body"><%= n.body %></p>
+        <% if (n.link) { %><a class="link" href="<%= n.link %>">Ver</a><% } %>
+      </li>
+    <% }) %>
+  </ul>
+<% } %>
+<%- include('../partials/footer') %>

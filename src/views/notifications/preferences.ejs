@@ -1,0 +1,18 @@
+<%- include('../partials/header') %>
+<h1>Preferências de avisos</h1>
+<div class="card">
+  <p class="hint">Desmarque os tipos de aviso que você não quer receber. Vale para "Meus avisos" e para o e-mail.</p>
+  <form id="preferences-form" class="stacked" method="post" action="/my/notifications/preferences" novalidate>
+    <% Object.entries(types).forEach(([type, label]) => { %>
+      <div class="field checkbox">
+        <label for="<%= type %>">
+          <input type="checkbox" id="<%= type %>" name="<%= type %>" <%= prefs[type] ? 'checked' : '' %>>
+          <%= label %>
+        </label>
+      </div>
+    <% }) %>
+    <button type="submit" id="submit">Salvar preferências</button>
+    <a class="button secondary" href="/my/notifications">Voltar para Meus avisos</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

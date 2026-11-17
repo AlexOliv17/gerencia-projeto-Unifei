@@ -7,6 +7,8 @@ const {
   listRaceStarts, getRaceStart, saveRaceStart, cancelRaceStart, listRunners,
 } = require('../models/races');
 const { recordFinishTimes, listHistory } = require('../models/results');
+const { notify } = require('../models/notifications');
+const { raceAudience } = require('../models/audience');
 const { validateRaceStartInput, parseFinishTime, formatFinishTime } = require('../validation/games');
 const { formatBrDate, todayIso } = require('../validation/dates');
 
@@ -74,7 +76,23 @@ router.post('/my/championships/:id/races/:categoryId/start', ...GUARDS, requireA
     res.status(422);
     return renderStart(req, res, { values: req.body, errors });
   }
-  saveRaceStart(req.app.locals.db, req.championship.id, req.category.id, data);
+  const { db } = req.app.locals;
+  const before = req.start;
+  saveRaceStart(db, req.championship.id, req.category.id, data);
+  const after = getRaceStart(db, req.category.id);
+  const restored = before?.status === 'cancelled';
+  if (restored || (before && (after.start_date !== before.start_date || after.start_time !== before.start_time
+    || after.venue !== before.venue))) {
+    notify(db, {
+      userIds: raceAudience(db, req.championship.id, req.category.id),
+      type: 'schedule_changed',
+      outboxType: 'race_changed',
+      exceptUserId: req.user.id,
+      title: `Largada ${restored ? 'remarcada' : 'alterada'}: ${req.championship.name} (${req.category.name})`,
+      body: `A largada da categoria ${req.category.name} agora é em ${formatBrDate(after.start_date)} às ${after.start_time}, ${after.venue}.`,
+      link: `/championships/${req.championship.id}/table?category_id=${req.category.id}`,
+    });
+  }
   setFlash(req, 'success', MESSAGES.raceSaved);
   return res.redirect(racesPath(req.championship.id));
 });
@@ -93,7 +111,17 @@ router.get('/my/championships/:id/races/:categoryId/cancel', ...GUARDS, requireA
 });
 
 router.post('/my/championships/:id/races/:categoryId/cancel', ...GUARDS, requireActive, requireScheduledStart, (req, res) => {
-  cancelRaceStart(req.app.locals.db, req.category.id);
+  const { db } = req.app.locals;
+  cancelRaceStart(db, req.category.id);
+  notify(db, {
+    userIds: raceAudience(db, req.championship.id, req.category.id),
+    type: 'cancellation',
+    outboxType: 'race_cancelled',
+    exceptUserId: req.user.id,
+    title: `Largada cancelada: ${req.championship.name} (${req.category.name})`,
+    body: `A largada da categoria ${req.category.name} de ${formatBrDate(req.start.start_date)} foi cancelada.`,
+    link: `/championships/${req.championship.id}/table?category_id=${req.category.id}`,
+  });
   setFlash(req, 'success', MESSAGES.raceCancelled);
   res.redirect(racesPath(req.championship.id));
 });

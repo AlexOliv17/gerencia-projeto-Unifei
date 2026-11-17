@@ -83,7 +83,7 @@ describe('RFS06/RFS07/RFS08 - Gerenciar campeonatos', function () {
     assert.equal(await value(driver, 'start_date'), formatBrDate(inDays(20)));
   });
 
-  it('altera o local e registra aviso aos inscritos', async function () {
+  it('altera o local e avisa cada inscrito e seguidor', async function () {
     await asOrganizer();
     await click(driver, `#edit-${idOf('Copa Itajubá de Futsal')}`);
     await fill(driver, { venue: 'Ginásio Poliesportivo' });
@@ -91,7 +91,8 @@ describe('RFS06/RFS07/RFS08 - Gerenciar campeonatos', function () {
     assert.equal(await flash(driver), MESSAGES.champSaved);
     assert.equal(server.db.prepare('SELECT venue FROM championships WHERE id = ?').get(idOf('Copa Itajubá de Futsal')).venue,
       'Ginásio Poliesportivo');
-    assert.equal(outbox('Alteração no campeonato Copa Itajubá de Futsal').length, 1);
+    assert.deepEqual(outbox('Alteração no campeonato Copa Itajubá de Futsal').map((m) => m.recipient).sort(),
+      ['capita@arenalocal.com', 'usuario@arenalocal.com']);
   });
 
   it('alteração sem mudar data ou local não gera aviso', async function () {
@@ -99,7 +100,7 @@ describe('RFS06/RFS07/RFS08 - Gerenciar campeonatos', function () {
     await fill(driver, { rules: 'Regulamento revisado.' });
     await submit(driver);
     assert.equal(await flash(driver), MESSAGES.champSaved);
-    assert.equal(outbox('Alteração no campeonato Copa Itajubá de Futsal').length, 1);
+    assert.equal(outbox('Alteração no campeonato Copa Itajubá de Futsal').length, 2);
   });
 
   it('valida as regras também na alteração', async function () {
