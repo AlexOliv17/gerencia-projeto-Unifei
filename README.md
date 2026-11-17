@@ -30,7 +30,7 @@ Principais funcionalidades previstas:
 | R01 | 2 CRUDs: [RFC01] Manter Usuário e [RFC02] Manter Campeonato | 29/10/2026 | `v1.1-release-1` |
 | R02 | 4 CRUDs acumulados: + [RFC07] Manter Equipe e [RFC08] Realizar Inscrição | 05/11/2026 | `v1.2-release-2` |
 | R03 | 6 CRUDs acumulados: + [RFC03] Manter Tabela de Jogos e [RFC04] Registrar Resultados e Classificação; + relatório [RFC13] Emitir Relatório de Inscrições | — | `v1.3-release-3` |
-| R04 | 8 CRUDs acumulados + 1 relatório | — | `v1.4-release-4` |
+| R04 | 8 CRUDs acumulados: + [RFC09] Seguir Campeonatos e Equipes e [RFC10] Emitir Avisos de Eventos Próximos; + 1 relatório | — | `v1.4-release-4` |
 
 A partir da R01, cada release entrega também: cronograma atualizado com os dados de execução, baseline de configuração salva no Git, testes automatizados com Selenium e registro dos bugs encontrados no Mantis/Bugzilla.
 
@@ -65,7 +65,7 @@ Ao atualizar o código para uma nova release, rode `npm run seed` de novo: o ban
 | Administrador | admin@arenalocal.com | Admin@123 |
 | Organizador (validado) | organizador@arenalocal.com | Senha@123 |
 | Organizador (pendente) | pendente@arenalocal.com | Senha@123 |
-| Usuário (equipe Unidos de Itajubá) | usuario@arenalocal.com | Senha@123 |
+| Usuário (equipe Unidos de Itajubá; segue a Liga de Vôlei e a equipe Leoas da Serra) | usuario@arenalocal.com | Senha@123 |
 | Usuário (equipes Leoas da Serra, Vôlei Sapucaí, Estrelas do Vale, Ases de Santa Rita e Garças do Sapucaí) | capita@arenalocal.com | Senha@123 |
 
 O seed também traz inscrições de exemplo (pendente, aprovada e recusada), a **Liga de Vôlei Santa Rita** com dois jogos já disputados, um agendado e a classificação pronta, e as largadas da **Corrida Rústica**. A Copa Itajubá de Futsal fica sem tabela, para demonstrar a geração automática.
@@ -79,7 +79,13 @@ Como organizador, em **Meus campeonatos**:
 
 A página de cada campeonato tem o botão **Tabela e classificação**, aberto também para visitantes.
 
-Nesta versão os e-mails (recuperação de senha, avisos de alteração, cancelamento e resultado de inscrição) são simulados: ficam na **Caixa de saída**, acessível ao administrador.
+### Seguir e avisos (R04)
+
+- **Seguir** no detalhe do campeonato e ao lado de cada equipe inscrita; **Acompanhando** reúne os seguidos com próximos jogos e resultados.
+- **Avisos (N)** no menu: alterações e cancelamentos de campeonato, jogo ou largada, resultado da inscrição, lembretes 24 h e 2 h antes de jogos e largadas, e 48 h antes do fim das inscrições dos campeonatos seguidos. Em **Preferências** cada tipo pode ser desligado.
+- Os lembretes são verificados a cada minuto enquanto o servidor (`npm start`) está no ar.
+
+Os e-mails (recuperação de senha e todos os avisos) são simulados: ficam na **Caixa de saída**, acessível ao administrador, com o e-mail de cada destinatário. Os avisos também aparecem em **Avisos** para cada usuário.
 
 ## Testes
 
@@ -108,6 +114,7 @@ Filtros prontos por release (o `|` separa grupos):
 | R01 | `npx mocha --grep "RFS0[1-8]\|RFS12\|Mantis\|Permissões por perfil\|Smoke"` |
 | R02 | `npx mocha --grep "RFS14\|RFS15\|RFS16\|lista de espera\|equipes e inscri\|BUG-R2"` |
 | R03 | `npx mocha --grep "RFS09\|RFS10\|RFS13\|RFS22\|tabela de jogos, resultados"` |
+| R04 | `npx mocha --grep "RFS17\|RFS18"` |
 
 Cada arquivo de teste sobe a aplicação com um banco temporário e os dados de exemplo, então os testes não dependem do banco local. Falhas geram screenshot em `tests/evidence/screenshots/`.
 
