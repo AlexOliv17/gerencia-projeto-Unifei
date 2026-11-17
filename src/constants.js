@@ -48,6 +48,22 @@ const OPEN_REGISTRATION_STATUSES = ['pending', 'approved', 'waitlist'];
 
 const MAX_ATHLETES = 30;
 
+/** Shown for a match: "finished" is derived (a scheduled match with a result). */
+const MATCH_STATUS = {
+  scheduled: 'Agendado',
+  finished: 'Encerrado',
+  cancelled: 'Cancelado',
+};
+
+const RACE_STATUS = {
+  scheduled: 'Agendada',
+  cancelled: 'Cancelada',
+};
+
+const DEFAULT_POINTS = { win: 3, draw: 1, loss: 0 };
+const DEFAULT_MATCH_MINUTES = 60;
+const MAX_GROUP_SIZE = 4;
+
 const LOCKOUT = { maxAttempts: 5, minutes: 15 };
 const RESET_TOKEN_TTL_MINUTES = 60;
 
@@ -121,9 +137,49 @@ const MESSAGES = {
   registrationNotCancellable: 'Esta inscrição não pode mais ser cancelada.',
   registrationApproved: 'Inscrição aprovada.',
   registrationRefused: 'Inscrição recusada.',
+  pointsInvalid: 'Informe um número inteiro maior ou igual a zero.',
+  timeInvalid: 'Horário inválido. Use HH:MM.',
+  durationInvalid: 'Informe a duração em minutos (de 10 a 300).',
+  intervalInvalid: 'Informe um número de dias entre 1 e 30.',
+  dateOutsidePeriod: 'A data deve estar dentro do período do campeonato.',
+  matchSameTeams: 'Escolha duas equipes diferentes.',
+  matchTeamNotApproved: 'Escolha uma equipe com inscrição aprovada nesta categoria.',
+  matchTeamBusy: (team, date, time) => `${team} já tem jogo em ${date} às ${time}.`,
+  matchVenueBusy: (date, time) => `O local já tem jogo em ${date} às ${time}.`,
+  matchGroupOnlyGroups: 'Grupo só se aplica ao formato Grupos + mata-mata.',
+  matchCreated: 'Jogo cadastrado.',
+  matchSaved: 'Jogo atualizado.',
+  matchCancelled: 'Jogo cancelado.',
+  matchHasResult: 'Este jogo já tem resultado e não pode ser cancelado.',
+  matchTeamsLocked: 'As equipes não podem mudar depois do resultado.',
+  matchNotEditable: 'Jogo cancelado não pode ser alterado.',
+  tableClosed: 'Campeonato encerrado ou cancelado: a tabela fica só para consulta.',
+  generateNotEnough: 'São necessárias ao menos 2 equipes aprovadas na categoria.',
+  generateHasMatches: 'Esta categoria já tem jogos. Cancele-os para gerar a tabela de novo.',
+  generateDayFull: 'Os jogos de uma rodada não cabem no mesmo dia. Reduza a duração ou comece mais cedo.',
+  generateAfterEnd: 'A última rodada ficaria depois do fim do campeonato. Reduza os dias entre rodadas.',
+  generateDone: (n) => `Tabela gerada com ${n} jogos.`,
+  knockoutNotReady: 'O mata-mata só pode ser gerado quando todos os jogos dos grupos tiverem resultado.',
+  knockoutExists: 'O mata-mata desta categoria já foi gerado.',
+  scoreInvalid: 'Informe um número inteiro maior ou igual a zero.',
+  knockoutDraw: 'Jogo eliminatório não pode terminar empatado. Informe o placar com o desempate.',
+  volleyDraw: 'No vôlei não há empate em sets.',
+  volleyPointsBoth: 'Informe os pontos das duas equipes ou deixe os dois em branco.',
+  resultTooEarly: 'O resultado só pode ser registrado a partir da data do jogo.',
+  resultTeamsMissing: 'As duas equipes do jogo ainda não estão definidas.',
+  resultSaved: 'Resultado registrado.',
+  resultWinnerLocked: 'O vencedor não pode mudar: o jogo seguinte do mata-mata já tem resultado.',
+  raceExists: 'Esta categoria já tem largada cadastrada.',
+  raceSaved: 'Largada salva.',
+  raceCancelled: 'Largada cancelada.',
+  raceTooEarly: 'Os tempos só podem ser registrados a partir da data da largada.',
+  finishTimeInvalid: 'Tempo inválido. Use HH:MM:SS.',
+  raceTimesSaved: (n) => (n === 1 ? '1 tempo registrado.' : `${n} tempos registrados.`),
+  raceNoChanges: 'Nenhum tempo foi alterado.',
 };
 
 module.exports = {
   SPORTS, FORMATS, ROLES, USER_STATUS, CHAMPIONSHIP_DISPLAY_STATUS, TEAM_SPORTS, REGISTRATION_STATUS,
-  OPEN_REGISTRATION_STATUSES, MAX_ATHLETES, LOCKOUT, RESET_TOKEN_TTL_MINUTES, MESSAGES,
+  OPEN_REGISTRATION_STATUSES, MAX_ATHLETES, MATCH_STATUS, RACE_STATUS, DEFAULT_POINTS, DEFAULT_MATCH_MINUTES,
+  MAX_GROUP_SIZE, LOCKOUT, RESET_TOKEN_TTL_MINUTES, MESSAGES,
 };

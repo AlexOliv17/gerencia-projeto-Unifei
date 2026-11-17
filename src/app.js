@@ -3,7 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const config = require('./config');
 const constants = require('./constants');
-const { formatBrDate } = require('./validation/dates');
+const { formatBrDate, formatBrDateTime } = require('./validation/dates');
 const { flash, loadUser, render404 } = require('./middleware/session');
 
 function createApp({ db }) {
@@ -14,6 +14,7 @@ function createApp({ db }) {
   app.locals.db = db;
   app.locals.labels = constants;
   app.locals.formatBrDate = formatBrDate;
+  app.locals.formatBrDateTime = formatBrDateTime;
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(path.join(__dirname, '..', 'public')));

@@ -75,6 +75,16 @@
         Permitir lista de espera (quando as vagas de uma categoria acabarem)
       </label>
     </div>
+    <fieldset class="points">
+      <legend>Pontuação na classificação <span class="hint">(futebol, futsal e vôlei; em branco usa o padrão)</span></legend>
+      <% [['points_win', 'Vitória', 3], ['points_draw', 'Empate', 1], ['points_loss', 'Derrota', 0]].forEach(([field, label, standard]) => { %>
+        <div class="field">
+          <label for="<%= field %>"><%= label %> <span class="hint">(padrão <%= standard %>)</span></label>
+          <input type="text" id="<%= field %>" name="<%= field %>" inputmode="numeric" value="<%= values[field] ?? '' %>">
+          <%- include('../partials/error', { field }) %>
+        </div>
+      <% }) %>
+    </fieldset>
     <div class="field">
       <label for="rules">Regulamento</label>
       <textarea id="rules" name="rules"><%= values.rules || '' %></textarea>

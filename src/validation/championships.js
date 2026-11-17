@@ -1,4 +1,6 @@
-const { MESSAGES, SPORTS, FORMATS } = require('../constants');
+const {
+  MESSAGES, SPORTS, FORMATS, DEFAULT_POINTS,
+} = require('../constants');
 const { parseBrDate } = require('./dates');
 
 const trim = (v) => (typeof v === 'string' ? v.trim() : '');
@@ -76,6 +78,17 @@ function validateChampionshipInput(input, { cityIds = [] } = {}) {
   data.rules = optional(input.rules);
   data.contact = optional(input.contact);
   data.allowWaitlist = Boolean(input.allow_waitlist);
+
+  // RFS11 rule 1: points per win, draw and loss; blank keeps the Tabela 06 default.
+  for (const [field, key, fallback] of [['points_win', 'pointsWin', DEFAULT_POINTS.win],
+    ['points_draw', 'pointsDraw', DEFAULT_POINTS.draw], ['points_loss', 'pointsLoss', DEFAULT_POINTS.loss]]) {
+    const raw = trim(input[field]);
+    data[key] = fallback;
+    if (raw) {
+      if (/^\d{1,2}$/.test(raw)) data[key] = Number(raw);
+      else errors[field] = MESSAGES.pointsInvalid;
+    }
+  }
 
   return { errors, data };
 }

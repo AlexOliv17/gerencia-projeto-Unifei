@@ -1,3 +1,4 @@
+const { DEFAULT_POINTS } = require('../constants');
 const { todayIso } = require('../validation/dates');
 
 /** "Em inscrição" until the registration deadline, then "Em andamento" until finished/cancelled. */
@@ -58,11 +59,12 @@ function syncCategories(db, championshipId, categories) {
   for (const removed of existing.values()) remove.run(removed.id);
 }
 
-/** Names of the categories that already have registrations (of any status) and so cannot be removed. */
+/** Names of the categories that already have registrations (of any status) or a race start, and so cannot be removed. */
 function categoriesInUse(db, championshipId) {
-  return db.prepare(`SELECT DISTINCT cc.name FROM championship_categories cc
-    JOIN registrations r ON r.category_id = cc.id WHERE cc.championship_id = ? ORDER BY cc.id`)
-    .all(championshipId).map((c) => c.name);
+  return db.prepare(`SELECT cc.name FROM championship_categories cc WHERE cc.championship_id = ?
+      AND (EXISTS (SELECT 1 FROM registrations r WHERE r.category_id = cc.id)
+        OR EXISTS (SELECT 1 FROM race_starts rs WHERE rs.category_id = cc.id))
+    ORDER BY cc.id`).all(championshipId).map((c) => c.name);
 }
 
 function insertCategories(db, championshipId, categories) {
@@ -70,15 +72,21 @@ function insertCategories(db, championshipId, categories) {
   for (const name of categories) insert.run(championshipId, name);
 }
 
+/** Callers that predate RFS11 (tests, seed) may leave the points out: Tabela 06 defaults. */
+function points(data) {
+  return [data.pointsWin ?? DEFAULT_POINTS.win, data.pointsDraw ?? DEFAULT_POINTS.draw, data.pointsLoss ?? DEFAULT_POINTS.loss];
+}
+
 function createChampionship(db, organizerId, data) {
   const now = new Date().toISOString();
   return db.transaction(() => {
     const id = Number(db.prepare(`INSERT INTO championships
       (organizer_id, name, sport, city_id, venue, start_date, end_date, registration_deadline, format,
-       max_slots, rules, contact, allow_waitlist, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`).run(
+       max_slots, rules, contact, allow_waitlist, points_win, points_draw, points_loss, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`).run(
       organizerId, data.name, data.sport, data.cityId, data.venue, data.startDate, data.endDate,
-      data.registrationDeadline, data.format, data.maxSlots, data.rules, data.contact, data.allowWaitlist ? 1 : 0, now, now,
+      data.registrationDeadline, data.format, data.maxSlots, data.rules, data.contact, data.allowWaitlist ? 1 : 0,
+      ...points(data), now, now,
     ).lastInsertRowid);
     insertCategories(db, id, data.categories);
     return id;
@@ -145,10 +153,12 @@ function updateChampionship(db, id, data) {
   return db.transaction(() => {
     const before = db.prepare('SELECT * FROM championships WHERE id = ?').get(id);
     db.prepare(`UPDATE championships SET name = ?, sport = ?, city_id = ?, venue = ?, start_date = ?, end_date = ?,
-      registration_deadline = ?, format = ?, max_slots = ?, rules = ?, contact = ?, allow_waitlist = ?, updated_at = ?
+      registration_deadline = ?, format = ?, max_slots = ?, rules = ?, contact = ?, allow_waitlist = ?,
+      points_win = ?, points_draw = ?, points_loss = ?, updated_at = ?
       WHERE id = ?`).run(
       data.name, data.sport, data.cityId, data.venue, data.startDate, data.endDate, data.registrationDeadline,
-      data.format, data.maxSlots, data.rules, data.contact, data.allowWaitlist ? 1 : 0, new Date().toISOString(), id,
+      data.format, data.maxSlots, data.rules, data.contact, data.allowWaitlist ? 1 : 0, ...points(data),
+      new Date().toISOString(), id,
     );
     syncCategories(db, id, data.categories);
     const changedSchedule = before.start_date !== data.startDate || before.end_date !== data.endDate

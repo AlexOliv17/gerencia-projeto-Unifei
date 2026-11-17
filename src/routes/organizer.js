@@ -41,6 +41,9 @@ function formValues(c) {
     rules: c.rules ?? '',
     contact: c.contact ?? '',
     allow_waitlist: c.allow_waitlist ? 'on' : '',
+    points_win: c.points_win,
+    points_draw: c.points_draw,
+    points_loss: c.points_loss,
   };
 }
 
