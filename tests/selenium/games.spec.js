@@ -173,6 +173,15 @@ describe('RFS09 - Manter Tabela de Jogos', function () {
     assert.deepEqual(await texts(driver, 'tr[data-testid="match-row"] .team-b'), ['Time Verde', 'A definir']);
   });
 
+  it('não muda o formato do campeonato depois de haver jogos (BUG-R3-02)', async function () {
+    await login(driver, server.baseUrl, ORGANIZER, 'Senha@123');
+    await visit(driver, server.baseUrl, `/my/championships/${f.champId('Copa Manual')}/edit`);
+    await selectByText(driver, 'format', 'Mata-mata');
+    await submit(driver);
+    assert.equal(await fieldError(driver, 'format'), MESSAGES.championshipFormatLocked);
+    assert.equal(server.db.prepare("SELECT format FROM championships WHERE name = 'Copa Manual'").get().format, 'round_robin');
+  });
+
   it('campeonato encerrado: tabela só para consulta, inclusive contra POST forjado', async function () {
     await login(driver, server.baseUrl, ORGANIZER, 'Senha@123');
     await visit(driver, server.baseUrl, tablePath('Copa Encerrada'));

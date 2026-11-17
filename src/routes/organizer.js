@@ -8,6 +8,7 @@ const {
   createChampionship, getChampionship, searchChampionships, updateChampionship, finishChampionship,
   cancelChampionship, canManage, categoriesInUse,
 } = require('../models/championships');
+const { championshipHasGames } = require('../models/matches');
 const { validateChampionshipInput, parseSearchFilters } = require('../validation/championships');
 const { formatBrDate } = require('../validation/dates');
 
@@ -103,6 +104,10 @@ router.post('/my/championships/:id/edit', requireRole('organizer'), loadManageab
   // Registered teams were checked against the current sport (RFS15 rule 2), so it is frozen once there are any.
   const inUse = categoriesInUse(db, req.championship.id);
   if (!errors.sport && inUse.length && data.sport !== req.championship.sport) errors.sport = MESSAGES.championshipSportLocked;
+  // Games were generated for the current format (league tables, groups or bracket), so it is frozen once there are any.
+  if (!errors.format && data.format !== req.championship.format && championshipHasGames(db, req.championship.id)) {
+    errors.format = MESSAGES.championshipFormatLocked;
+  }
   if (!errors.categories) {
     const kept = new Set(data.categories.map((name) => name.toLowerCase()));
     const removed = inUse.find((name) => !kept.has(name.toLowerCase()));

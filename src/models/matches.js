@@ -123,6 +123,11 @@ function activeMatchCount(db, categoryId, { kind } = {}) {
     ${kind ? 'AND kind = ?' : ''}`).get(...(kind ? [categoryId, kind] : [categoryId])).n;
 }
 
+/** Whether the championship has any game that still counts; its format is frozen from then on. */
+function championshipHasGames(db, championshipId) {
+  return Boolean(db.prepare("SELECT 1 FROM matches WHERE championship_id = ? AND status = 'scheduled'").get(championshipId));
+}
+
 /** Last result change of the championship (or one category): RFS13 "data e hora da última atualização". */
 function lastResultUpdate(db, championshipId, categoryId = null) {
   const matches = db.prepare(`SELECT MAX(result_updated_at) AS at FROM matches WHERE championship_id = ?
@@ -135,5 +140,5 @@ function lastResultUpdate(db, championshipId, categoryId = null) {
 
 module.exports = {
   getMatch, listMatches, approvedEntries, findConflict, insertMatch, updateMatch, cancelMatch, activeMatchCount,
-  lastResultUpdate, hasResult, overlaps,
+  lastResultUpdate, hasResult, overlaps, championshipHasGames,
 };
