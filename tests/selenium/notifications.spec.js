@@ -123,16 +123,17 @@ describe('RFS18 - Enviar Avisos Automáticos', function () {
 
   it('cancelar e depois remarcar a largada avisa os dois momentos (BUG-R4-01)', async function () {
     const corrida = 'Corrida Rústica de Pouso Alegre';
-    follow(server.db, f.userId(JOAO), { championshipId: f.champId(corrida) });
+    // Maria: João switched "alteração" notices off in an earlier test of this file.
+    follow(server.db, f.userId(MARIA), { championshipId: f.champId(corrida) });
     const path = `/my/championships/${f.champId(corrida)}/races/${f.categoryId(corrida, '10 km')}`;
     await login(driver, server.baseUrl, ORGANIZER, 'Senha@123');
     await visit(driver, server.baseUrl, `${path}/cancel`);
     await click(driver, '#confirm-cancel');
-    assert.ok(titlesFor(JOAO).includes(`Largada cancelada: ${corrida} (10 km)`));
+    assert.ok(titlesFor(MARIA).includes(`Largada cancelada: ${corrida} (10 km)`));
     await visit(driver, server.baseUrl, `${path}/start`);
     await submit(driver);
     assert.equal(await flash(driver), MESSAGES.raceSaved);
-    assert.ok(titlesFor(JOAO).includes(`Largada remarcada: ${corrida} (10 km)`));
+    assert.ok(titlesFor(MARIA).includes(`Largada remarcada: ${corrida} (10 km)`));
   });
 
   it('lembretes de 24 h e 2 h saem uma vez só, mesmo com a rotina rodando de novo', async function () {
