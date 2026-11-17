@@ -3,7 +3,8 @@ const express = require('express');
 const session = require('express-session');
 const config = require('./config');
 const constants = require('./constants');
-const { formatBrDate } = require('./validation/dates');
+const { formatBrDate, formatBrDateTime } = require('./validation/dates');
+const { formatFinishTime } = require('./validation/games');
 const { flash, loadUser, render404 } = require('./middleware/session');
 
 function createApp({ db }) {
@@ -14,6 +15,8 @@ function createApp({ db }) {
   app.locals.db = db;
   app.locals.labels = constants;
   app.locals.formatBrDate = formatBrDate;
+  app.locals.formatBrDateTime = formatBrDateTime;
+  app.locals.formatFinishTime = formatFinishTime;
 
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -33,6 +36,9 @@ function createApp({ db }) {
   app.use(require('./routes/organizer'));
   app.use(require('./routes/teams'));
   app.use(require('./routes/registrations'));
+  app.use(require('./routes/games'));
+  app.use(require('./routes/races'));
+  app.use(require('./routes/report'));
   app.use(require('./routes/championships'));
 
   app.use((req, res) => render404(res));

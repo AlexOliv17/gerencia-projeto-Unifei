@@ -40,7 +40,23 @@ test('campeonato válido gera dados normalizados', () => {
     rules: 'Regras',
     contact: null,
     allowWaitlist: false,
+    pointsWin: 3,
+    pointsDraw: 1,
+    pointsLoss: 0,
   });
+});
+
+test('pontuação configurável: em branco usa 3/1/0, valores inteiros são aceitos', () => {
+  const { errors, data } = validate(valid({ points_win: '2', points_draw: '', points_loss: '0' }));
+  assert.deepEqual(errors, {});
+  assert.deepEqual([data.pointsWin, data.pointsDraw, data.pointsLoss], [2, 1, 0]);
+});
+
+test('pontuação inválida', () => {
+  const { errors } = validate(valid({ points_win: '-1', points_draw: 'um', points_loss: '1.5' }));
+  assert.equal(errors.points_win, MESSAGES.pointsInvalid);
+  assert.equal(errors.points_draw, MESSAGES.pointsInvalid);
+  assert.equal(errors.points_loss, MESSAGES.pointsInvalid);
 });
 
 test('campos obrigatórios', () => {

@@ -1,0 +1,133 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Tabela e classificação — <%= championship.name %></h1>
+  <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+</div>
+
+<%- include('../partials/category-picker', { action: `/championships/${championship.id}/table` }) %>
+
+<p id="last-update" class="hint">
+  <% if (lastUpdate) { %>Última atualização: <%= formatBrDateTime(lastUpdate) %><% } else { %>Nenhum resultado registrado ainda.<% } %>
+</p>
+
+<% if (championship.sport === 'street_run') { %>
+  <h2>Largada</h2>
+  <div class="card">
+    <p id="race-start">
+      <% if (!start) { %>Largada ainda não definida.<% } else if (start.status === 'cancelled') { %>Largada cancelada.<% } else { %>
+        <%= formatBrDate(start.start_date) %> às <%= start.start_time %> — <%= start.venue %>
+      <% } %>
+    </p>
+  </div>
+  <h2>Resultado</h2>
+  <% if (ranking.length === 0) { %>
+    <p id="no-ranking">Nenhum participante aprovado nesta categoria.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table class="standings">
+        <thead><tr><th class="num">#</th><th>Participante</th><th>Tempo</th></tr></thead>
+        <tbody>
+          <% ranking.forEach((r) => { %>
+            <tr data-testid="ranking-row">
+              <td class="position num"><%= r.position ?? '—' %></td>
+              <td class="name"><%= r.name %></td>
+              <td class="time"><%= r.seconds != null ? formatFinishTime(r.seconds) : 'Sem tempo' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+<% } else { %>
+  <h2>Próximos jogos</h2>
+  <% if (upcoming.length === 0) { %>
+    <p id="no-upcoming">Nenhum jogo agendado.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fase/Rodada</th><th>Data</th><th>Horário</th><th>Local</th><th>Jogo</th><th>Situação</th></tr></thead>
+        <tbody>
+          <% upcoming.forEach((m) => { %>
+            <tr data-testid="upcoming-row" class="<%= m.status === 'cancelled' ? 'muted' : '' %>">
+              <td class="round"><%= m.round %><% if (m.group_name) { %> (Grupo <%= m.group_name %>)<% } %></td>
+              <td class="date"><%= formatBrDate(m.match_date) %></td>
+              <td class="time"><%= m.start_time %></td>
+              <td class="venue"><%= m.venue %></td>
+              <td class="game"><%= m.nameA %> x <%= m.nameB %></td>
+              <td class="status"><%= labels.MATCH_STATUS[m.displayStatus] %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <h2>Resultados</h2>
+  <% if (results.length === 0) { %>
+    <p id="no-results-yet">Nenhum resultado registrado.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Fase/Rodada</th><th>Data</th><th>Equipe A</th><th>Placar</th><th>Equipe B</th></tr></thead>
+        <tbody>
+          <% results.forEach((m) => { %>
+            <tr data-testid="result-row">
+              <td class="round"><%= m.round %><% if (m.group_name) { %> (Grupo <%= m.group_name %>)<% } %></td>
+              <td class="date"><%= formatBrDate(m.match_date) %></td>
+              <td class="team-a"><%= m.nameA %></td>
+              <td class="score"><%= m.score_a %> x <%= m.score_b %></td>
+              <td class="team-b"><%= m.nameB %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <h2>Classificação</h2>
+  <% if (championship.format === 'knockout') { %>
+    <p id="knockout-only" class="hint">Mata-mata: não há tabela de pontos; o vencedor de cada jogo avança para a fase seguinte.</p>
+  <% } else if (standings.length === 0) { %>
+    <p id="no-standings" class="hint">A classificação aparece quando a tabela de jogos for montada.</p>
+  <% } else { %>
+    <% const volley = championship.sport === 'volleyball'; %>
+    <% standings.forEach((t) => { %>
+      <% if (t.group) { %><h3>Grupo <%= t.group %></h3><% } %>
+      <div class="table-wrap">
+        <table class="standings" data-testid="standings" <% if (t.group) { %>id="standings-<%= t.group %>"<% } %>>
+          <thead>
+            <tr>
+              <th class="num">#</th><th>Equipe</th><th class="num">Pts</th><th class="num">J</th><th class="num">V</th>
+              <% if (!volley) { %><th class="num">E</th><% } %><th class="num">D</th>
+              <th class="num"><%= volley ? 'Sets pró' : 'Gols pró' %></th><th class="num"><%= volley ? 'Sets contra' : 'Gols contra' %></th>
+              <th class="num">Saldo</th><% if (volley) { %><th class="num">Saldo de pontos</th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% t.rows.forEach((r) => { %>
+              <tr data-testid="standing-row">
+                <td class="position num"><%= r.position %></td>
+                <td class="name"><%= r.name %></td>
+                <td class="points num"><%= r.points %></td>
+                <td class="played num"><%= r.played %></td>
+                <td class="wins num"><%= r.wins %></td>
+                <% if (!volley) { %><td class="draws num"><%= r.draws %></td><% } %>
+                <td class="losses num"><%= r.losses %></td>
+                <td class="for num"><%= r.for %></td>
+                <td class="against num"><%= r.against %></td>
+                <td class="diff num"><%= r.diff %></td>
+                <% if (volley) { %><td class="points-diff num"><%= r.pointsDiff %></td><% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% }) %>
+    <p class="hint">
+      <% if (volley) { %>Desempate: vitórias, saldo de sets, saldo de pontos.<% } else { %>Desempate: vitórias, saldo de gols, gols marcados.<% } %>
+      Vitória <%= championship.points_win %> ponto(s)<% if (!volley) { %>, empate <%= championship.points_draw %><% } %>, derrota <%= championship.points_loss %>.
+    </p>
+  <% } %>
+<% } %>
+<p><a href="/championships/<%= championship.id %>">Voltar para o campeonato</a></p>
+<%- include('../partials/footer') %>

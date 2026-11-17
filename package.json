@@ -20,7 +20,8 @@
     "better-sqlite3": "^12.11.1",
     "ejs": "^7.0.2",
     "express": "^4.22.3",
-    "express-session": "^1.19.0"
+    "express-session": "^1.19.0",
+    "pdfkit": "^0.17.2"
   },
   "devDependencies": {
     "mocha": "^11.8.0",

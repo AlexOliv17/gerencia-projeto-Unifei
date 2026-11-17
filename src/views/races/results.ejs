@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<h1>Tempos de chegada — <%= category.name %></h1>
+<div class="card">
+  <p><%= championship.name %> · largada em <%= formatBrDate(start.start_date) %> às <%= start.start_time %> · <%= start.venue %></p>
+  <% if (runners.length === 0) { %>
+    <p id="no-runners">Nenhum participante aprovado nesta categoria.</p>
+  <% } else { %>
+    <form id="times-form" method="post" action="/my/championships/<%= championship.id %>/races/<%= category.id %>/results" novalidate>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Participante</th><th>Tempo (HH:MM:SS)</th></tr></thead>
+          <tbody>
+            <% runners.forEach((r) => { const field = `time_${r.id}`; %>
+              <tr data-testid="runner-row">
+                <td class="name"><label for="<%= field %>"><%= r.name %></label></td>
+                <td>
+                  <input type="text" id="<%= field %>" name="<%= field %>" placeholder="HH:MM:SS" value="<%= values[field] || '' %>">
+                  <%- include('../partials/error', { field }) %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">Deixe em branco quem ainda não chegou. Alterar um tempo já salvo registra a correção no histórico.</p>
+      <button type="submit" id="submit">Salvar tempos</button>
+      <a class="button secondary" href="<%= back %>">Voltar</a>
+    </form>
+  <% } %>
+</div>
+<% if (history.length) { %>
+  <h2>Histórico de tempos</h2>
+  <div class="card">
+    <ul class="history">
+      <% history.forEach((h) => { %>
+        <li data-testid="history-entry"><span class="when"><%= formatBrDateTime(h.changed_at) %></span> — <span class="who"><%= h.changed_by_name %></span>: <span class="what"><%= h.description %></span></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+<%- include('../partials/footer') %>

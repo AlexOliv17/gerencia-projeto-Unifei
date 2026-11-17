@@ -61,6 +61,18 @@ const TEAMS = [
     name: 'Vôlei Sapucaí', owner: 'capita@arenalocal.com', sport: 'volleyball', city: 'Santa Rita do Sapucaí',
     athletes: athletes(['Gabriela Pinto', 'Helena Faria', 'Isabela Torres', 'Júlia Campos', 'Karina Vaz', 'Larissa Rios']),
   },
+  {
+    name: 'Estrelas do Vale', owner: 'capita@arenalocal.com', sport: 'volleyball', city: 'Santa Rita do Sapucaí',
+    athletes: athletes(['Mariana Leite', 'Natália Brito', 'Olívia Matos', 'Paula Siqueira', 'Renata Assis', 'Sofia Queiroz']),
+  },
+  {
+    name: 'Ases de Santa Rita', owner: 'capita@arenalocal.com', sport: 'volleyball', city: 'Santa Rita do Sapucaí',
+    athletes: athletes(['Tânia Ribeiro', 'Úrsula Mendes', 'Vanessa Cruz', 'Wanda Lopes', 'Yasmin Teles', 'Zélia Correia']),
+  },
+  {
+    name: 'Garças do Sapucaí', owner: 'capita@arenalocal.com', sport: 'volleyball', city: 'Santa Rita do Sapucaí',
+    athletes: athletes(['Alice Barros', 'Bianca Freitas', 'Cecília Gomes', 'Denise Araújo', 'Eva Pacheco', 'Flávia Rangel']),
+  },
 ];
 
 // team: null is an individual registration (street run) made by `user`.
@@ -72,6 +84,21 @@ const REGISTRATIONS = [
     status: 'refused', refuseReason: 'Equipe incompleta',
   },
   { championship: 'Corrida Rústica de Pouso Alegre', category: '5 km', team: null, user: 'usuario@arenalocal.com', status: 'pending' },
+  ...['Estrelas do Vale', 'Ases de Santa Rita', 'Garças do Sapucaí'].map((team) => ({
+    championship: 'Liga de Vôlei Santa Rita', category: 'Feminino', team, user: 'capita@arenalocal.com', status: 'approved',
+  })),
+];
+
+// Liga de Vôlei Santa Rita (round robin, in progress): two rounds played, one to come. Scores are sets, points are totals.
+const MATCHES = [
+  { round: 1, day: -7, a: 'Estrelas do Vale', b: 'Ases de Santa Rita', score: [3, 1], points: [98, 80] },
+  { round: 2, day: -3, a: 'Ases de Santa Rita', b: 'Garças do Sapucaí', score: [3, 2], points: [110, 104] },
+  { round: 3, day: 4, a: 'Garças do Sapucaí', b: 'Estrelas do Vale' },
+];
+
+const RACE_STARTS = [
+  { category: '5 km', time: '07:00' },
+  { category: '10 km', time: '07:30' },
 ];
 
 /** Wipes every table and inserts the fixed demo/test data. */
@@ -80,7 +107,7 @@ function seed(db) {
   const today = todayIso();
 
   db.transaction(() => {
-    for (const table of ['registrations', 'team_athletes', 'teams', 'outbox', 'championship_categories', 'championships',
+    for (const table of ['result_history', 'race_results', 'race_starts', 'matches', 'registrations', 'team_athletes', 'teams', 'outbox', 'championship_categories', 'championships',
       'password_resets', 'users', 'cities']) {
       db.prepare(`DELETE FROM ${table}`).run();
     }
@@ -135,6 +162,35 @@ function seed(db) {
       const decided = r.status === 'approved' || r.status === 'refused' ? now : null;
       insertRegistration.run(championshipId, categoryId, r.team ? teamIds[r.team] : null, userIds[r.user], r.status,
         r.refuseReason ?? null, decided, now, now);
+    }
+
+    const organizerId = userIds['organizador@arenalocal.com'];
+    const liga = category.get('Liga de Vôlei Santa Rita', 'Feminino');
+    const entry = db.prepare('SELECT id FROM registrations WHERE category_id = ? AND team_id = ?');
+    const insertMatch = db.prepare(`INSERT INTO matches
+      (championship_id, category_id, kind, round, round_number, registration_a_id, registration_b_id, match_date, start_time,
+       duration_minutes, venue, score_a, score_b, points_a, points_b, result_updated_at, result_updated_by, created_at, updated_at)
+      VALUES (?, ?, 'league', ?, ?, ?, ?, ?, '19:00', 90, 'Quadra do Inatel', ?, ?, ?, ?, ?, ?, ?, ?)`);
+    const insertHistory = db.prepare(`INSERT INTO result_history (championship_id, match_id, description, changed_by, changed_at)
+      VALUES (?, ?, ?, ?, ?)`);
+    for (const m of MATCHES) {
+      const played = Boolean(m.score);
+      const matchId = insertMatch.run(liga.championshipId, liga.categoryId, `Rodada ${m.round}`, m.round,
+        entry.get(liga.categoryId, teamIds[m.a]).id, entry.get(liga.categoryId, teamIds[m.b]).id, addDaysIso(today, m.day),
+        m.score?.[0] ?? null, m.score?.[1] ?? null, m.points?.[0] ?? null, m.points?.[1] ?? null,
+        played ? now : null, played ? organizerId : null, now, now).lastInsertRowid;
+      if (played) {
+        insertHistory.run(liga.championshipId, matchId, `Resultado registrado: ${m.a} ${m.score[0]} x ${m.score[1]} ${m.b}`,
+          organizerId, now);
+      }
+    }
+
+    const corrida = CHAMPIONSHIPS.find((c) => c.sport === 'street_run');
+    const insertStart = db.prepare(`INSERT INTO race_starts
+      (championship_id, category_id, start_date, start_time, venue, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`);
+    for (const s of RACE_STARTS) {
+      const { categoryId, championshipId } = category.get(corrida.name, s.category);
+      insertStart.run(championshipId, categoryId, addDaysIso(today, corrida.start), s.time, corrida.venue, now, now);
     }
   })();
 }

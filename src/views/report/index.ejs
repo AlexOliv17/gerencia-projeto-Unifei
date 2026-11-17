@@ -1,0 +1,63 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Relatório de inscrições — <%= championship.name %></h1>
+  <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+</div>
+
+<form id="filters" class="card filters" method="get" action="/my/championships/<%= championship.id %>/report" novalidate>
+  <div class="field">
+    <label for="category_id">Categoria</label>
+    <select id="category_id" name="category_id">
+      <option value="">Todas</option>
+      <% categories.forEach((c) => { %>
+        <option value="<%= c.id %>" <%= filters.category_id === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <div class="field">
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      <option value="">Todos</option>
+      <% Object.entries(labels.REGISTRATION_STATUS).forEach(([key, label]) => { %>
+        <option value="<%= key %>" <%= filters.status === key ? 'selected' : '' %>><%= label %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button type="submit" id="filter-submit">Gerar relatório</button>
+</form>
+
+<div class="actions page-actions">
+  <a id="export-csv" class="button secondary" href="/my/championships/<%= championship.id %>/report.csv?<%= query %>">Exportar CSV</a>
+  <a id="export-pdf" class="button secondary" href="/my/championships/<%= championship.id %>/report.pdf?<%= query %>">Exportar PDF</a>
+</div>
+
+<% if (groups.length === 0) { %>
+  <p id="no-registrations">Nenhuma inscrição encontrada.</p>
+<% } %>
+<% groups.forEach((g) => { %>
+  <section class="card" id="report-category-<%= g.id %>" data-testid="report-category">
+    <h2 class="category"><%= g.name %></h2>
+    <p id="totals-<%= g.id %>" class="hint totals">
+      <%= Object.entries(g.totals).filter(([, n]) => n).map(([s, n]) => `${labels.REGISTRATION_STATUS[s]}: ${n}`).join(' · ') %>
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th><%= entryLabel %></th><th>Responsável</th><th>Status</th><th>Data do pedido</th><th>Data da decisão</th><th>Motivo da recusa</th></tr></thead>
+        <tbody>
+          <% g.rows.forEach((r) => { %>
+            <tr data-testid="report-row">
+              <td class="entry"><%= r.entryName %></td>
+              <td class="responsible"><%= r.user_name %></td>
+              <td class="status"><%= labels.REGISTRATION_STATUS[r.status] %></td>
+              <td class="created"><%= formatBrDateTime(r.created_at) %></td>
+              <td class="decided"><%= formatBrDateTime(r.decided_at) %></td>
+              <td class="reason"><%= r.refuse_reason || '' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% }) %>
+<p><a href="/my/championships">Voltar para Meus campeonatos</a></p>
+<%- include('../partials/footer') %>

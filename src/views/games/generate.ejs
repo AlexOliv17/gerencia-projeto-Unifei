@@ -1,0 +1,55 @@
+<%- include('../partials/header') %>
+<h1><%= title %> — <%= championship.name %></h1>
+<div class="card">
+  <p class="hint">
+    <% if (knockout) { %>
+      Os dois primeiros de cada grupo vão para o mata-mata, cruzados (1º de um grupo contra o 2º de outro). O vencedor de cada jogo avança sozinho.
+    <% } else if (championship.format === 'knockout') { %>
+      Chaveamento com as equipes aprovadas; as fases seguintes ficam "A definir" e recebem o vencedor de cada jogo.
+    <% } else if (championship.format === 'groups_knockout') { %>
+      Grupos de até 4 equipes, todos contra todos dentro do grupo. O mata-mata é gerado depois da fase de grupos.
+    <% } else { %>
+      Todos contra todos, em turno único.
+    <% } %>
+    Cada rodada fica numa data e os jogos dela acontecem um depois do outro no mesmo local.
+  </p>
+  <form id="generate-form" class="stacked" method="post" action="/my/championships/<%= championship.id %>/games/<%= knockout ? 'knockout' : 'generate' %>" novalidate>
+    <div class="field">
+      <label for="category_id">Categoria *</label>
+      <select id="category_id" name="category_id">
+        <% categories.forEach((c) => { %>
+          <option value="<%= c.id %>" <%= String(values.category_id) === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'category_id' }) %>
+    </div>
+    <div class="field">
+      <label for="first_date">Data da primeira rodada * <span class="hint">(DD/MM/AAAA)</span></label>
+      <input type="text" id="first_date" name="first_date" value="<%= values.first_date || '' %>">
+      <%- include('../partials/error', { field: 'first_date' }) %>
+    </div>
+    <div class="field">
+      <label for="first_time">Horário do primeiro jogo * <span class="hint">(HH:MM)</span></label>
+      <input type="text" id="first_time" name="first_time" value="<%= values.first_time || '' %>">
+      <%- include('../partials/error', { field: 'first_time' }) %>
+    </div>
+    <div class="field">
+      <label for="duration_minutes">Duração de cada jogo (minutos)</label>
+      <input type="text" id="duration_minutes" name="duration_minutes" value="<%= values.duration_minutes || '' %>">
+      <%- include('../partials/error', { field: 'duration_minutes' }) %>
+    </div>
+    <div class="field">
+      <label for="interval_days">Dias entre rodadas</label>
+      <input type="text" id="interval_days" name="interval_days" value="<%= values.interval_days || '' %>">
+      <%- include('../partials/error', { field: 'interval_days' }) %>
+    </div>
+    <div class="field">
+      <label for="venue">Local *</label>
+      <input type="text" id="venue" name="venue" value="<%= values.venue || '' %>">
+      <%- include('../partials/error', { field: 'venue' }) %>
+    </div>
+    <button type="submit" id="submit"><%= title %></button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

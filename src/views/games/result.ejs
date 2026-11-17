@@ -1,0 +1,39 @@
+<%- include('../partials/header') %>
+<h1>Resultado — <%= match.nameA %> x <%= match.nameB %></h1>
+<div class="card">
+  <p><%= match.round %><% if (match.group_name) { %> (Grupo <%= match.group_name %>)<% } %> · <%= formatBrDate(match.match_date) %> às <%= match.start_time %> · <%= match.venue %></p>
+  <% if (match.hasResult) { %>
+    <p id="current-result" class="hint">Resultado atual: <%= match.score_a %> x <%= match.score_b %>, registrado em <%= formatBrDateTime(match.result_updated_at) %> por <%= match.result_updated_by_name %>. Salvar de novo corrige o resultado.</p>
+  <% } %>
+  <% const unit = championship.sport === 'volleyball' ? 'Sets' : 'Gols'; %>
+  <form id="result-form" class="stacked" method="post" action="/games/<%= match.id %>/result" novalidate>
+    <div class="field">
+      <label for="score_a"><%= unit %> de <%= match.nameA %> *</label>
+      <input type="text" id="score_a" name="score_a" inputmode="numeric" value="<%= values.score_a ?? '' %>">
+      <%- include('../partials/error', { field: 'score_a' }) %>
+    </div>
+    <div class="field">
+      <label for="score_b"><%= unit %> de <%= match.nameB %> *</label>
+      <input type="text" id="score_b" name="score_b" inputmode="numeric" value="<%= values.score_b ?? '' %>">
+      <%- include('../partials/error', { field: 'score_b' }) %>
+    </div>
+    <% if (championship.sport === 'volleyball') { %>
+      <div class="field">
+        <label for="points_a">Pontos de <%= match.nameA %> <span class="hint">(total do jogo, opcional; desempata a classificação)</span></label>
+        <input type="text" id="points_a" name="points_a" inputmode="numeric" value="<%= values.points_a ?? '' %>">
+        <%- include('../partials/error', { field: 'points_a' }) %>
+      </div>
+      <div class="field">
+        <label for="points_b">Pontos de <%= match.nameB %></label>
+        <input type="text" id="points_b" name="points_b" inputmode="numeric" value="<%= values.points_b ?? '' %>">
+        <%- include('../partials/error', { field: 'points_b' }) %>
+      </div>
+    <% } %>
+    <% if (match.kind === 'knockout') { %>
+      <p class="hint">Jogo eliminatório: informe o placar com o desempate (pênaltis); o vencedor avança para a fase seguinte.</p>
+    <% } %>
+    <button type="submit" id="submit">Salvar resultado</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

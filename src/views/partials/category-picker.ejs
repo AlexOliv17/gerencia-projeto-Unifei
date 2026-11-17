@@ -1,0 +1,11 @@
+<form id="category-picker" class="card filters" method="get" action="<%= action %>" novalidate>
+  <div class="field">
+    <label for="category-select">Categoria</label>
+    <select id="category-select" name="category_id">
+      <% categories.forEach((c) => { %>
+        <option value="<%= c.id %>" <%= category && category.id === c.id ? 'selected' : '' %>><%= c.name %></option>
+      <% }) %>
+    </select>
+  </div>
+  <button type="submit" id="category-submit">Ver categoria</button>
+</form>

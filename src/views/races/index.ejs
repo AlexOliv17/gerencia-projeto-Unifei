@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Largadas — <%= championship.name %></h1>
+  <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+</div>
+<% if (!editable) { %>
+  <p id="table-closed" class="notice"><%= labels.MESSAGES.tableClosed %></p>
+<% } %>
+<p class="hint">Na corrida de rua, cada categoria tem uma largada; os tempos de chegada formam o ranking da categoria.</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Categoria</th><th>Data</th><th>Horário</th><th>Local</th><th>Situação</th><th>Ações</th></tr></thead>
+    <tbody>
+      <% starts.forEach((s) => { %>
+        <tr id="race-<%= s.category_id %>" data-testid="race-row">
+          <td class="category"><%= s.category_name %></td>
+          <td class="date"><%= s.id ? formatBrDate(s.start_date) : '—' %></td>
+          <td class="time"><%= s.id ? s.start_time : '—' %></td>
+          <td class="venue"><%= s.id ? s.venue : '—' %></td>
+          <td class="status"><%= s.id ? labels.RACE_STATUS[s.status] : 'Sem largada' %></td>
+          <td class="actions-cell">
+            <div class="actions">
+              <% if (editable) { %>
+                <a id="start-<%= s.category_id %>" class="button small secondary" href="/my/championships/<%= championship.id %>/races/<%= s.category_id %>/start"><%= s.id ? 'Alterar' : 'Cadastrar largada' %></a>
+                <% if (s.status === 'scheduled') { %>
+                  <% if (s.start_date <= today) { %>
+                    <a id="times-<%= s.category_id %>" class="button small" href="/my/championships/<%= championship.id %>/races/<%= s.category_id %>/results">Tempos</a>
+                  <% } %>
+                  <a id="cancel-start-<%= s.category_id %>" class="button small danger" href="/my/championships/<%= championship.id %>/races/<%= s.category_id %>/cancel">Cancelar</a>
+                <% } %>
+              <% } %>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<p><a id="public-table" href="/championships/<%= championship.id %>/table">Ver página pública</a> · <a href="/my/championships">Voltar para Meus campeonatos</a></p>
+<%- include('../partials/footer') %>
