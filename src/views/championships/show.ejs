@@ -2,6 +2,7 @@
 <div class="page-head">
   <h1 id="championship-name"><%= championship.name %></h1>
   <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+  <a id="table-link" class="button secondary" href="/championships/<%= championship.id %>/table">Tabela e classificação</a>
   <% if (canRegister) { %>
     <a id="register-button" class="button" href="/championships/<%= championship.id %>/register">Inscrever</a>
   <% } %>
