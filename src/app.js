@@ -38,6 +38,7 @@ function createApp({ db }) {
   app.use(require('./routes/registrations'));
   app.use(require('./routes/games'));
   app.use(require('./routes/races'));
+  app.use(require('./routes/report'));
   app.use(require('./routes/championships'));
 
   app.use((req, res) => render404(res));
