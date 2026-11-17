@@ -169,7 +169,7 @@ const MESSAGES = {
   resultTeamsMissing: 'As duas equipes do jogo ainda não estão definidas.',
   resultSaved: 'Resultado registrado.',
   resultWinnerLocked: 'O vencedor não pode mudar: o jogo seguinte do mata-mata já tem resultado.',
-  raceExists: 'Esta categoria já tem largada cadastrada.',
+  raceMissing: 'Esta categoria não tem largada agendada.',
   raceSaved: 'Largada salva.',
   raceCancelled: 'Largada cancelada.',
   raceTooEarly: 'Os tempos só podem ser registrados a partir da data da largada.',

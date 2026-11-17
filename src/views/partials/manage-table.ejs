@@ -23,6 +23,7 @@
               <% if (allowEdit) { %>
                 <div class="actions">
                   <a id="registrations-<%= c.id %>" class="button small secondary" href="/my/championships/<%= c.id %>/registrations">Inscrições</a>
+                  <a id="games-<%= c.id %>" class="button small secondary" href="/my/championships/<%= c.id %>/<%= c.sport === 'street_run' ? 'races' : 'games' %>"><%= c.sport === 'street_run' ? 'Largadas' : 'Tabela' %></a>
                 </div>
               <% } %>
               <% if (c.status === 'active' && allowManage) { %>

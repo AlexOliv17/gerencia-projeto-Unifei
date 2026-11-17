@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<h1>Cancelar largada</h1>
+<div class="card">
+  <p>Cancelar a largada da categoria <strong><%= category.name %></strong> (<%= formatBrDate(start.start_date) %> às <%= start.start_time %>)?
+    Ela pode ser reagendada depois em "Alterar".</p>
+  <form method="post" action="/my/championships/<%= championship.id %>/races/<%= category.id %>/cancel">
+    <button type="submit" id="confirm-cancel" class="danger">Cancelar largada</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,24 @@
+<%- include('../partials/header') %>
+<h1><%= title %> — <%= category.name %></h1>
+<div class="card">
+  <form id="start-form" class="stacked" method="post" action="/my/championships/<%= championship.id %>/races/<%= category.id %>/start" novalidate>
+    <div class="field">
+      <label for="start_date">Data * <span class="hint">(DD/MM/AAAA, dentro do período do campeonato)</span></label>
+      <input type="text" id="start_date" name="start_date" placeholder="DD/MM/AAAA" value="<%= values.start_date || '' %>">
+      <%- include('../partials/error', { field: 'start_date' }) %>
+    </div>
+    <div class="field">
+      <label for="start_time">Horário da largada * <span class="hint">(HH:MM)</span></label>
+      <input type="text" id="start_time" name="start_time" placeholder="HH:MM" value="<%= values.start_time || '' %>">
+      <%- include('../partials/error', { field: 'start_time' }) %>
+    </div>
+    <div class="field">
+      <label for="venue">Local *</label>
+      <input type="text" id="venue" name="venue" value="<%= values.venue || '' %>">
+      <%- include('../partials/error', { field: 'venue' }) %>
+    </div>
+    <button type="submit" id="submit">Salvar</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

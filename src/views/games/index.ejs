@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Tabela de jogos — <%= championship.name %></h1>
+  <span id="championship-status" class="badge"><%= labels.CHAMPIONSHIP_DISPLAY_STATUS[championship.displayStatus] %></span>
+</div>
+<% if (!editable) { %>
+  <p id="table-closed" class="notice"><%= labels.MESSAGES.tableClosed %></p>
+<% } %>
+
+<%- include('../partials/category-picker', { action: `/my/championships/${championship.id}/games` }) %>
+
+<div class="actions page-actions">
+  <% if (editable) { %>
+    <a id="new-match" class="button" href="/my/championships/<%= championship.id %>/games/new?category_id=<%= category.id %>">Cadastrar jogo</a>
+    <a id="generate-table" class="button secondary" href="/my/championships/<%= championship.id %>/games/generate?category_id=<%= category.id %>">Gerar tabela</a>
+    <% if (knockout.available) { %>
+      <a id="generate-knockout" class="button secondary" href="/my/championships/<%= championship.id %>/games/knockout?category_id=<%= category.id %>">Gerar mata-mata</a>
+    <% } %>
+  <% } %>
+  <a id="public-table" class="button secondary" href="/championships/<%= championship.id %>/table?category_id=<%= category.id %>">Ver página pública</a>
+</div>
+
+<% if (matches.length === 0) { %>
+  <p id="no-matches">Nenhum jogo cadastrado nesta categoria.</p>
+<% } else { %>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Fase/Rodada</th><th>Data</th><th>Horário</th><th>Local</th><th>Equipe A</th><th>Placar</th><th>Equipe B</th><th>Situação</th><th>Ações</th></tr>
+      </thead>
+      <tbody>
+        <% matches.forEach((m) => { %>
+          <tr id="match-<%= m.id %>" data-testid="match-row" class="<%= m.status === 'cancelled' ? 'muted' : '' %>">
+            <td class="round"><%= m.round %><% if (m.group_name) { %> <span class="group">(Grupo <%= m.group_name %>)</span><% } %></td>
+            <td class="date"><%= formatBrDate(m.match_date) %></td>
+            <td class="time"><%= m.start_time %></td>
+            <td class="venue"><%= m.venue %></td>
+            <td class="team-a"><%= m.nameA %></td>
+            <td class="score"><%= m.hasResult ? `${m.score_a} x ${m.score_b}` : 'x' %></td>
+            <td class="team-b"><%= m.nameB %></td>
+            <td class="status"><%= labels.MATCH_STATUS[m.displayStatus] %>
+              <% if (m.hasResult) { %><br><small class="hint updated">Atualizado em <%= formatBrDateTime(m.result_updated_at) %> por <%= m.result_updated_by_name %></small><% } %>
+            </td>
+            <td class="actions-cell">
+              <div class="actions">
+                <% if (editable && m.status === 'scheduled') { %>
+                  <a id="edit-match-<%= m.id %>" class="button small secondary" href="/games/<%= m.id %>/edit">Alterar</a>
+                  <% if (m.registration_a_id && m.registration_b_id && m.match_date <= today) { %>
+                    <a id="result-match-<%= m.id %>" class="button small" href="/games/<%= m.id %>/result">Resultado</a>
+                  <% } %>
+                  <% if (!m.hasResult) { %>
+                    <a id="cancel-match-<%= m.id %>" class="button small danger" href="/games/<%= m.id %>/cancel">Cancelar</a>
+                  <% } %>
+                <% } %>
+                <% if (m.hasResult) { %>
+                  <a id="history-match-<%= m.id %>" class="button small secondary" href="/games/<%= m.id %>/history">Histórico</a>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+<p><a href="/my/championships">Voltar para Meus campeonatos</a></p>
+<%- include('../partials/footer') %>

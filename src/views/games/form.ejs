@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<h1><%= title %> — <%= championship.name %></h1>
+<div class="card">
+  <form id="match-form" class="stacked" method="post" action="<%= match ? `/games/${match.id}/edit` : `/my/championships/${championship.id}/games/new` %>" novalidate>
+    <div class="field">
+      <label for="category_id">Categoria *</label>
+      <select id="category_id" name="category_id">
+        <option value="">Selecione</option>
+        <% categories.forEach((c) => { %>
+          <option value="<%= c.id %>" <%= String(values.category_id) === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+      <%- include('../partials/error', { field: 'category_id' }) %>
+    </div>
+    <div class="field">
+      <label for="round">Fase/Rodada * <span class="hint">(ex.: Rodada 1, Semifinal)</span></label>
+      <input type="text" id="round" name="round" value="<%= values.round || '' %>">
+      <%- include('../partials/error', { field: 'round' }) %>
+    </div>
+    <% if (championship.format === 'groups_knockout') { %>
+      <div class="field">
+        <label for="group_name">Grupo <span class="hint">(ex.: A; em branco para jogos do mata-mata)</span></label>
+        <input type="text" id="group_name" name="group_name" value="<%= values.group_name || '' %>">
+        <%- include('../partials/error', { field: 'group_name' }) %>
+      </div>
+    <% } %>
+    <% [['registration_a_id', 'Equipe A'], ['registration_b_id', 'Equipe B']].forEach(([field, label]) => { %>
+      <div class="field">
+        <label for="<%= field %>"><%= label %> * <span class="hint">(somente inscrições aprovadas)</span></label>
+        <select id="<%= field %>" name="<%= field %>">
+          <option value="">Selecione</option>
+          <% categories.forEach((c) => { const list = entries.get(c.id) || []; if (!list.length) return; %>
+            <optgroup label="<%= c.name %>">
+              <% list.forEach((e) => { %>
+                <option value="<%= e.id %>" <%= String(values[field]) === String(e.id) ? 'selected' : '' %>><%= e.name %></option>
+              <% }) %>
+            </optgroup>
+          <% }) %>
+        </select>
+        <%- include('../partials/error', { field }) %>
+      </div>
+    <% }) %>
+    <div class="field">
+      <label for="match_date">Data * <span class="hint">(DD/MM/AAAA, dentro do período do campeonato)</span></label>
+      <input type="text" id="match_date" name="match_date" placeholder="DD/MM/AAAA" value="<%= values.match_date || '' %>">
+      <%- include('../partials/error', { field: 'match_date' }) %>
+    </div>
+    <div class="field">
+      <label for="start_time">Horário * <span class="hint">(HH:MM)</span></label>
+      <input type="text" id="start_time" name="start_time" placeholder="HH:MM" value="<%= values.start_time || '' %>">
+      <%- include('../partials/error', { field: 'start_time' }) %>
+    </div>
+    <div class="field">
+      <label for="duration_minutes">Duração (minutos)</label>
+      <input type="text" id="duration_minutes" name="duration_minutes" inputmode="numeric" value="<%= values.duration_minutes || '' %>">
+      <%- include('../partials/error', { field: 'duration_minutes' }) %>
+    </div>
+    <div class="field">
+      <label for="venue">Local *</label>
+      <input type="text" id="venue" name="venue" value="<%= values.venue || '' %>">
+      <%- include('../partials/error', { field: 'venue' }) %>
+    </div>
+    <button type="submit" id="submit">Salvar</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<h1>Cancelar jogo</h1>
+<div class="card">
+  <p>Cancelar o jogo <strong><%= match.nameA %> x <%= match.nameB %></strong> (<%= match.round %>, <%= formatBrDate(match.match_date) %> às <%= match.start_time %>)?
+    Ele continua na tabela como cancelado e deixa de contar para a classificação.</p>
+  <form method="post" action="/games/<%= match.id %>/cancel">
+    <button type="submit" id="confirm-cancel" class="danger">Cancelar jogo</button>
+    <a class="button secondary" href="<%= back %>">Voltar</a>
+  </form>
+</div>
+<%- include('../partials/footer') %>

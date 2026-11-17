@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<h1>Histórico — <%= match.nameA %> x <%= match.nameB %></h1>
+<div class="card">
+  <% if (history.length === 0) { %>
+    <p id="no-history">Nenhum resultado registrado.</p>
+  <% } else { %>
+    <ul class="history">
+      <% history.forEach((h) => { %>
+        <li data-testid="history-entry"><span class="when"><%= formatBrDateTime(h.changed_at) %></span> — <span class="who"><%= h.changed_by_name %></span>: <span class="what"><%= h.description %></span></li>
+      <% }) %>
+    </ul>
+  <% } %>
+</div>
+<p><a href="<%= back %>">Voltar para a tabela</a></p>
+<%- include('../partials/footer') %>
